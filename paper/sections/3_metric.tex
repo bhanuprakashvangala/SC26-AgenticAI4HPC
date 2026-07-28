@@ -5,7 +5,10 @@ We formalize the metrics used throughout the paper. The guiding idea is to
 separate correctness that a developer (or an agent) can \emph{observe cheaply}---by
 running a program once at low parallelism---from correctness that actually
 \emph{holds} once the program executes across the parallel configurations a
-production run will use.
+production run will use. Because an agent accepts its code on this same
+measurement---and a verifiable-reward RL loop would optimize it---these are not
+merely metrics but the \emph{specification} the model is steered toward;
+Section~\ref{sec:reward} builds directly on them to design the reward.
 
 \subsection{Setup and Notation}
 Let $\mathcal{M}$ denote the set of models under evaluation and $\mathcal{T}$ a

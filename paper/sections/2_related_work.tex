@@ -21,6 +21,24 @@ AI-coupled HPC workflows~\cite{aicoupled}, where a silent correctness bug
 propagates into the science.
 
 \vspace{4pt}
+\noindent\textbf{Verifiable-reward RL and performance-aware code generation.}
+A growing body of work post-trains code models with reinforcement learning from
+\emph{verifiable} rewards---an execution checker, not human preference, supplies the
+signal (RLVR~\cite{rlvr}, optimized with GRPO~\cite{grpo}). Closest to us, several efforts
+reward \emph{performance} directly for HPC code: \textsc{RLPF} aligns models to generate
+faster code from measured speedup~\cite{rlpf}, online RL feeds real-machine benchmark
+throughput back as the reward~\cite{rlhpc_realmachine}, and CUDA-kernel work combines
+correctness, performance, and structural rewards~\cite{cudaperf}; \textsc{PCEBench}
+benchmarks parallel code on both correctness and performance~\cite{pcebench}. We differ in
+\emph{claim}, not in noticing that speed matters: we do \emph{not} propose optimizing a
+performance reward. We show that the \emph{default} single-axis correctness reward---the
+one an execute-and-fix agent already uses---is \emph{saturated} at the frontier and
+\emph{gameable by construction} (a serial program is its optimum), and we \emph{measure}
+the speedup a correctness-only objective discards. The two-axis reward and its guarded
+performance gate are the remedy that follows from that diagnosis, not the contribution we
+assert over prior performance-rewarded generation.
+
+\vspace{4pt}
 \noindent\textbf{Functional-correctness evaluation.}
 Code-generation evaluation has centered on functional correctness of small,
 self-contained problems---HumanEval~\cite{codex}, its rigorous
