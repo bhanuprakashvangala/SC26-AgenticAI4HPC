@@ -1,0 +1,207 @@
+% Plain-words narration of the paper -- a standalone companion document.
+% Build on its own:  pdflatex narration
+% This is NOT part of the submission (main.tex); it explains the paper section by
+% section in simple words, showing how each part leads into the next.
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{parskip}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\titleformat{\section}{\large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalsize\bfseries}{}{0em}{}
+\setlist{nosep,leftmargin=1.4em}
+\newcommand{\handoff}[1]{\textit{Hand-off.}\ #1}
+\newcommand{\says}[1]{\textbf{What it says.}\ #1}
+\newcommand{\why}[1]{\textbf{Why it's here.}\ #1}
+
+\title{\vspace{-2em}Reading the paper as one story\\[-0.3em]
+  {\normalsize\normalfont (plain words)}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+\vspace{-3em}
+
+This walks the paper from top to bottom. For each part it says, in simple words, what the
+part says, why it is there, and how it hands off to the next part---so the whole thing
+reads as one connected story, not a pile of sections. No jargon.
+
+\section*{The whole story in five sentences}
+\begin{enumerate}
+\item AI agents now write parallel code and check their own work with a test.
+\item That same test is what new models are \emph{trained} on, so the test decides what
+  ``good code'' means.
+\item For parallel code the usual test---``is the answer correct?''---is the wrong test,
+  because plain slow code passes it perfectly.
+\item So a model trained to pass it can quietly learn to write correct code that is not
+  actually fast.
+\item The fix is to test two things, correct \emph{and} fast, and we show what that
+  changes.
+\end{enumerate}
+Everything below is just this story, told carefully.
+
+\section{Abstract --- the promise}
+\says{In one paragraph: agents check their own parallel code; that check is also the
+training reward; the correctness-only check is both \emph{already solved} (so a fancier
+one adds nothing) and \emph{cheatable} (plain serial code passes it); therefore the check
+must also measure speed; and here is the evidence.}
+
+\why{It is the trailer. A reviewer decides in 30 seconds whether to care.}
+
+\handoff{It names two surprises---``correctness is solved'' and ``correct code is not
+always fast.'' The introduction now has to make you \emph{believe} those two things.}
+
+\section{Introduction --- the problem, with a picture}
+\says{Agents write parallel code. Parallel code is special: whether the answer is right
+can depend on \emph{how many threads run it}. Then the picture that carries the whole
+paper---the \textbf{histogram}: an agent counts items into bins in parallel, two threads
+bump the same counter at once, one count is lost. On \emph{one} thread there is no
+collision, so it looks perfect. The agent ran it once, saw a good-looking answer, and
+shipped a bug. The check the agent did was blind to the bug.}
+
+\why{It plants one idea you never forget: the cheap check misses exactly the bugs parallel
+code has. Then it names the key move---the check an agent uses is the same signal a model
+is trained on, so \textbf{the check is the definition of good code}.}
+
+\handoff{If the check is that important, we had better define it exactly. That is the next
+part.}
+
+\section{The metric --- defining the check precisely}
+\says{It gives the check a name: \textbf{configuration-robust correctness}. Plain version:
+do not just run the code once---run it at 1, 2, 4, and 8 threads, several times each, and
+compare every run to a trusted simple (serial) answer. Only call it correct if
+\emph{every} run matches. It also says the quiet thing out loud: this check looks only at
+the \emph{answer}, so a program with all the parallel parts deleted---plain slow
+code---passes it every time. And it introduces the second measuring stick,
+\textbf{speed} (how much faster 8 threads are than 1).}
+
+\why{It turns the fuzzy word ``correct'' into something you can measure and argue about,
+and it plants the seed of the twist: a correct-only check is cheatable.}
+
+\handoff{Now we have a precise check. Time to actually use it on real models. That is the
+setup.}
+
+\section{Setup --- what we actually tested}
+\says{The benchmark is \textbf{ParEval} (standard tasks for parallel code, each with a
+trusted simple answer we compare against). We test a handful of strong models. We build
+the check as a real tool the agent can call, at three strengths: no tool (just generate),
+a \emph{weak} tool (test at 1 thread only), and the \emph{full} tool (test across all
+thread counts). Same agent, same prompts---only the tool changes. That controlled swap is
+how we isolate what the strong check is worth.}
+
+\why{It makes the results fair and repeatable: any difference later must come from the
+tool, not from luck.}
+
+\handoff{Everything is set. What happened? The results.}
+
+\section{Results --- two surprises}
+\says{Two findings, in order.}
+\begin{itemize}
+\item \textbf{Surprise one: the strong check changes nothing.} For these good models,
+  testing at all thread counts gives the exact same result as testing at one thread. Why?
+  They simply do not write the sneaky race the strong check is built to catch---and an
+  independent race detector agrees the accepted code is clean. So correctness is
+  \emph{already solved} here, and a finer correctness check has nothing left to catch.
+  (This is the honest ``negative result.'')
+\item \textbf{Surprise two: correct does not mean fast.} We take every program the check
+  accepted and actually time it. They range from \textbf{7.9$\times$ faster on 8 threads
+  down to 0.33$\times$}---one accepted program runs \emph{slower} on 8 threads than on 1.
+  The check rated them all equally correct. So the check cannot tell a great parallel
+  program from a fake one.
+\end{itemize}
+
+\why{Surprise one clears correctness off the table. Surprise two shows the real problem is
+now speed. Together they force a question.}
+
+\handoff{If a correct-only check is both pointless-at-the-top and cheatable, then
+\textbf{what should the check---and the training reward---measure instead?} That question
+is the next section, and it is the heart of the paper.}
+
+\section{The fix --- a two-part reward, and four experiments}
+\says{Make the reward measure \textbf{two things}: first it must be correct, and only then
+does it score how fast it is. Plain slow code clears the ``correct'' bar but scores near
+the bottom on speed; correct-and-fast code scores near the top. Then we test this idea
+four ways, each one a step more committed:}
+\begin{enumerate}
+\item \textbf{What the old reward throws away (done, real numbers).} Among tasks where
+  several different correct programs exist, the correct-only reward treats them all the
+  same, so picking one is a coin flip---you get the \emph{average} speed. The two-part
+  reward picks the \emph{fastest}. The gap is real: average $\sim$3.5$\times$ vs
+  $\sim$4.2$\times$, and on the worst task it is the difference between a 0.33$\times$ and
+  a 6.8$\times$ program the old reward calls equal.
+\item \textbf{Best-of-N with live models.} Generate several answers, score them, keep the
+  best. Under the old reward you keep a random correct one; under the two-part reward you
+  keep the fast one. This is a cheap stand-in for what RL training would learn.
+\item \textbf{The two-gate agent.} A real agent pipeline: first a ``coder'' gets it
+  correct (it calls the checker itself), then an ``optimizer'' makes it fast (it calls the
+  timer itself)---and every speed change is re-checked for correctness, so speed can never
+  sneak in a wrong answer.
+\item \textbf{Actual training (GRPO).} Train a model with each reward and watch. Predict:
+  old reward $\rightarrow$ the code slowly gets less parallel; two-part reward
+  $\rightarrow$ it stays fast.
+\end{enumerate}
+
+\why{It turns the complaint (``the reward is wrong'') into a fix (``here is the better
+reward'') and backs it with evidence at four levels, from a paper-only analysis up to real
+training.}
+
+\handoff{Now step back: what does all this mean, and where could we be wrong?}
+
+\section{Discussion --- meaning and honesty}
+\says{Meaning: the hard part of parallel-code writing moved. It used to be ``do not write
+races''; strong models mostly cleared that, so now it is ``actually be fast,'' and a
+correct-only reward is blind to that. Honesty: we tested shared-memory OpenMP up to 8
+threads, a handful of models, a limited task set---so the exact numbers may not carry to
+other settings; but the \emph{speed} finding is directly measured, not inferred, so it is
+solid.}
+
+\why{It tells the reader how far to trust the result, which is what good reviewers look
+for.}
+
+\handoff{Before claiming it is new, place it next to what others did.}
+
+\section{Related work --- who did what, and why we are different}
+\says{Rewarding code models for \emph{speed} is \textbf{not new}---several groups do it,
+including the group that made ParEval. So we do \textbf{not} claim ``add speed to the
+reward.'' Our different, honest claim is the \textbf{diagnosis}: a correct-only reward is
+cheatable and saturated, we \emph{measure} how much speed it throws away, and we add a
+speed gate that is guarded by correctness. We say this plainly so a reviewer cannot say
+``this has been done.''}
+
+\why{It protects the paper. Naming the neighbors and drawing a clean line is what keeps it
+from being desk-rejected as ``already known.''}
+
+\handoff{One last tightening of the message.}
+
+\section{Conclusion --- the one thing to remember}
+\says{Correctness stopped being the hard part for strong models; ``correct but not fast''
+is where their parallel code fails now, and any check---or training reward---that looks
+only at the answer cannot see it. Measure both.}
+
+\why{It leaves the reader with the single sentence you want repeated back.}
+
+\section*{The thread, in one line each}
+\begin{itemize}
+\item \textbf{Abstract:} the check is the reward, and the correct-only check is the wrong
+  one.
+\item \textbf{Intro:} here is why parallel code fools a one-run check (the histogram).
+\item \textbf{Metric:} here is the check, stated exactly---and yes, plain slow code passes
+  it.
+\item \textbf{Setup:} here is how we test it fairly (swap only the tool).
+\item \textbf{Results:} the strong check adds nothing, and correct code ranges from fast
+  to slower-than-serial.
+\item \textbf{Reward:} so measure both---and here are four experiments showing it matters.
+\item \textbf{Discussion:} the hard part moved from correctness to speed; here is what we
+  can and cannot claim.
+\item \textbf{Related work:} speed-rewards exist; our new part is the diagnosis and the
+  guarded speed gate.
+\item \textbf{Conclusion:} measure both axes, or you are grading the wrong thing.
+\end{itemize}
+
+Each arrow is a \emph{because}: because the check is the reward $\rightarrow$ we define it;
+because it is cheatable $\rightarrow$ we test what that costs; because that costs real
+speed $\rightarrow$ we add a speed gate; because speed-rewards exist $\rightarrow$ we are
+careful to claim only the diagnosis. That is the story.
+
+\end{document}
