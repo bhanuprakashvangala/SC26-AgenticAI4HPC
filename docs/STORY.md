@@ -93,6 +93,33 @@ correct. So chasing speed can never smuggle in a wrong answer. That guard is why
 two-axis reward is safe to optimize. Code: `harness/vg_agent.py` (agent),
 `harness/perf_gate.py` (the performance gate), `harness/rewards.py` (the reward).
 
+## 5b. The real agentic stack (not a scripted loop)
+
+The two gates above are implemented as a **genuine multi-agent, tool-calling pipeline**
+in `harness/agentic/`, not a hardcoded propose→verify→repair script. The difference:
+
+- **The model calls the tools itself.** Your `azure_llm.chat()` only returns text, so we
+  add `harness/agentic/llm.py` — a **function-calling** adapter over the same keyless
+  Azure client that returns `tool_calls`. The verifier and timer are exposed as tools
+  (`harness/agentic/tools.py`) with JSON schemas: `compile_and_verify`, `measure_speedup`,
+  `task_spec`. The agent *decides* when to compile, when to test, when it's done.
+- **Two specialized agents** (`harness/agentic/agent.py`), each a real ReAct loop:
+  `CoderAgent` (ω_correct, tools = verify) and `OptimizerAgent` (ω_parallel, tools =
+  verify + measure). They run until the model returns a final answer or a step budget.
+- **A stateful orchestration graph** (`harness/agentic/graph.py`) — a **LangGraph
+  `StateGraph`** encoding the meta-policy: `START → coder → [robust?] → optimizer → judge
+  → END`, with a conditional edge that skips optimization if the code never became
+  correct, and a judge node that scores both rewards. Falls back to an equivalent
+  sequential driver if LangGraph isn't installed, so it always runs.
+- **The performance gate is guarded by correctness** inside the graph: the optimizer's
+  output is re-verified, and if an optimization broke correctness we revert to the last
+  robust program. Speed can never buy a wrong answer.
+
+Every tool call and both agents' full message logs are written per run
+(`logs/pareval/transcripts/agentic__*.json`) for the SC26 artifact. Entry point:
+`python -m harness.agentic.run`. (`harness/vg_agent.py` remains as a simpler, no-extra-deps
+driver of the same two-gate idea; the `agentic/` package is the real pipeline.)
+
 ## 6. GRPO / RLVR: how the reward trains a model
 
 GRPO (the DeepSeek RL method) samples a **group** of answers, scores each with a
@@ -116,7 +143,7 @@ two ways, cheap and full:
 |---|---|---|---|---|
 | E1 | **Reward selection on frozen data** | `harness/reward_selection.py` | nothing (runs now) | On 12 tasks with ≥2 equally-correct programs, a correctness-only reward is *indifferent* and realizes only the pool-mean speedup; two-axis realizes the max. **3.54× → 4.23× mean; worst case 0.33× → 6.82× on the histogram.** |
 | E2 | **Best-of-N with live models** | `harness/best_of_n.py` | Azure/NRP + verify pod | Same effect with fresh sampling: correctness-only ≈ mean, two-axis = max, per (task, model). Captures within-model variance the frozen data can't. |
-| E3 | **VG-RLPT two-gate agent** | `harness/vg_agent.py` | Azure/NRP + verify pod | The constructive result: the correctness-only agent stops at "correct but slow"; adding ω_parallel lifts the *same task* to a scaling solution, at equal correctness. |
+| E3 | **VG-RLPT agentic pipeline** | `harness/agentic/run.py` (real stack) / `harness/vg_agent.py` (simple driver) | Azure + verify pod | The constructive result: the correctness-only agent stops at "correct but slow"; adding ω_parallel lifts the *same task* to a scaling solution, at equal correctness. Tool-calling agents + LangGraph orchestration. |
 | E4 | **Real GRPO training** | `harness/grpo_train.py` | GPU host + TRL + g++ | The training result: correctness-only reward → parallelism decays over steps; two-axis reward → speedup climbs. |
 
 E1 is done and is the backbone figure (`results/figures/fig_reward_selection.pdf`). E2–E4
@@ -178,8 +205,9 @@ python -m harness.reward_selection        # -> figure + results/reward_numbers.t
 # E2 — best-of-N with live models (the GRPO proxy):
 python -m harness.best_of_n --models gpt-5.4 --n 8 --types histogram reduce search
 
-# E3 — the VG-RLPT two-gate agent:
-python -m harness.vg_agent --models gpt-5.4 --types histogram reduce search --target 2.0
+# E3 — the VG-RLPT agentic pipeline (tool-calling agents + LangGraph orchestration):
+python -m harness.agentic.run --models gpt-5.4 --types histogram reduce search --target 2.0
+#     (simpler no-deps driver of the same two gates: python -m harness.vg_agent ...)
 
 # E4 — real GRPO, one run per reward, on a GPU host:
 python -m harness.grpo_train --reward correctness_only --types histogram reduce search
@@ -195,7 +223,13 @@ cd paper && pdflatex main && bibtex main && pdflatex main && pdflatex main
 harness/
   rewards.py           the three rewards; correctness-only is gameable, two-axis is the fix
   perf_gate.py         the performance verification gate (ω_parallel's β) — reuses timing
-  vg_agent.py          the VG-RLPT two-gate agent (ω_correct → ω_parallel)
+  agentic/             THE REAL STACK: tool-calling agents + LangGraph orchestration
+    llm.py             function-calling adapter over the keyless Azure client
+    tools.py           the verifier environment as tools the model invokes itself
+    agent.py           ToolAgent + CoderAgent (ω_correct) + OptimizerAgent (ω_parallel)
+    graph.py           LangGraph StateGraph: coder → [robust?] → optimizer → judge
+    run.py             pipeline entry point over ParEval tasks
+  vg_agent.py          simpler no-deps driver of the same two-gate idea
   best_of_n.py         best-of-N reward selection with live models (GRPO proxy)
   grpo_train.py        real GRPO/RLVR training with the two-axis verifiable reward
   reward_selection.py  E1: the frozen-data result + the backbone figure

@@ -15,3 +15,9 @@ numpy>=1.26           # pulled in by matplotlib; array helpers
 # torch>=2.4          # match your CUDA build
 # Best-of-N (harness/best_of_n.py) and the VG-RLPT agent (harness/vg_agent.py) need
 # only the base deps above plus model + verify-backend access.
+
+# --- Agentic pipeline (harness/agentic/) -- tool-calling agents + orchestration graph:
+langgraph>=0.2        # StateGraph orchestration of the two-gate meta-policy
+# (falls back to a hand-rolled sequential driver if langgraph is absent; the
+#  tool-calling agents themselves use the existing keyless Azure client, no LangChain
+#  LLM wrapper, so they work with your Entra-ID auth as-is.)
