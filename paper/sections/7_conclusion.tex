@@ -1,31 +1,29 @@
 \section{Conclusion}
 \label{sec:conclusion}
 
-Agentic AI will accelerate HPC software engineering only to the extent that we can
-trust what it writes once that code runs in parallel. We defined
-\emph{configuration-robust correctness}---agreement with a trusted serial reference
-under every thread count and repeated run---and built an agent that writes OpenMP
-code and can invoke a distribution-aware differential verifier that establishes it.
-On the standard ParEval benchmark with four state-of-the-art models, correctness
-turned out not to be the binding constraint: single-shot generation is already
-robustly correct \Lzerorate{} of the time, a repair loop raises this to
-\Lonerate{}, and the differential verifier leaves it unchanged at \Ltworate{}
-because these models seldom write the silent-race bug it targets---though an
-open-weights panel shows a smaller model shipping a genuine race the verifier
-catches and repairs, so its value returns as capability falls. The consequential
-finding is that robust correctness is \emph{necessary but not sufficient}, and
-gameable by construction: a serial program scores perfectly, and among the
-\Ntimed{} programs the verifier accepted, measured self-speedup spans $0.33\times$
-to $7.9\times$---one running slower in parallel than serially. Once frontier models
-make race-freedom cheap on idiomatic tasks, ``correct but not parallel'' is where
-agent-generated HPC code fails, and an output-only acceptance test cannot see it.
-Because the same signal an agent accepts on is the reward a verifiable-reward RL loop
-optimizes, this is ultimately a statement about \emph{reward design}: a single-axis
-correctness reward is gameable, so the acceptance gate---and the training reward---must
-score both axes, correctness \emph{and} realized parallelism, with the first cross-checked
-against a dedicated race detector. We show the cost of getting this wrong directly (a
-correctness-only reward discards real speedup among equally-accepted programs) and sketch
-the fix as a second, correctness-guarded performance gate that plugs into
-verification-guided post-training. We release the metric, the two-axis reward, the harness,
-prompts, and per-generation and per-repair transcripts so that parallelism-aware evaluation
-and reward design for agent-generated HPC code can be studied openly.
+Agentic AI will help HPC only as much as we can trust what it writes once that code runs in
+parallel. We defined \emph{configuration-robust correctness}---matching a trusted serial
+reference at every thread count and repeat---and built an agent that writes OpenMP code and
+can call a checker that establishes it. On the standard ParEval benchmark with four strong
+models, correctness turned out not to be the hard part: single-shot generation is already
+robustly correct \Lzerorate{} of the time, a repair loop raises this to \Lonerate{}, and the
+full thread-sweep verifier leaves it unchanged at \Ltworate{}, because these models rarely
+write the silent race it is built to catch. (A weaker open-weights model does ship such a
+race, and the verifier catches and fixes it---so the checker earns its keep exactly when the
+model is weaker.) The sharper finding is that this correctness check is \emph{necessary but
+not sufficient}, and gameable by design: plain serial code scores perfectly, and among the
+\Ntimed{} programs the check accepted, real speed ranges from $0.33\times$ to $7.9\times$---
+one of them slower in parallel than serially. Once strong models make race-freedom cheap,
+``correct but not parallel'' is where their HPC code fails, and a check that looks only at
+the output cannot see it.
+
+Because the check an agent accepts on is the same signal a verifiable-reward RL loop would
+optimize, this is really a statement about \emph{reward design}: a correctness-only reward is
+gameable, so the accept/reject gate---and the training reward---has to score both axes,
+correct \emph{and} actually fast, with the first cross-checked against a dedicated race
+detector. We show the cost of getting this wrong directly: picking among equally-correct
+programs by correctness alone throws away real speed. And we sketch the fix as a second,
+correctness-guarded performance gate that plugs into verification-guided post-training. We
+release the metric, the two-axis reward, the harness, the prompts, and the full transcripts,
+so that parallelism-aware evaluation and reward design for agent-generated HPC code can be
+studied in the open.

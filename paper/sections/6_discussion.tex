@@ -1,113 +1,91 @@
 \section{Discussion}
 \label{sec:discussion}
 
-Our results relocate the binding constraint on agent-generated parallel code
-\emph{twice}. We expected it to lie in \emph{parallelization}---races and
-order-dependence that a single run hides. For \Nmodels{} models on standard OpenMP
-tasks it did not: the models parallelized safely, and where they failed the error
-was \emph{algorithmic} and visible on the very first thread. But the deeper
-relocation is the one the performance axis reveals: once correctness is largely
-solved, the constraint moves to \emph{parallelism itself}. The programs the
-verifier accepts span $0.33\times$ to $7.9\times$ speedup
-(Section~\ref{sec:scaling}); a robustness metric defined on outputs cannot see the
-difference, because it is maximized by serial code. Correctness stopped being the
-hard part, and an acceptance test that scores only outputs is now measuring the
-wrong axis.
+Our results move the hard part of writing parallel code \emph{twice}. We expected it to sit
+in \emph{parallelization}---the races and order bugs a single run hides. For \Nmodels{}
+models on standard OpenMP tasks, it did not: the models parallelized safely, and when they
+were wrong the mistake was in the plain algorithm and already visible on one thread. The
+bigger move is the one the speed measurement reveals: once correctness is mostly solved, the
+hard part becomes \emph{parallelism itself}. The programs the check accepts run anywhere from
+$0.33\times$ to $7.9\times$ (Section~\ref{sec:scaling}); a check that looks only at the output
+cannot see the difference, because plain serial code maximizes it. Correctness stopped being
+the hard part, and a check that scores only outputs is now measuring the wrong thing.
 
 \vspace{3pt}
-\noindent\textbf{The repair loop, not the verifier's granularity, was the active
-ingredient.} Holding the model, prompt, and repair budget fixed and varying only
-the verification tool moves robust correctness from \Lzerorate{} (no tool) to
-\Lonerate{} once a repair loop is present---and then \emph{not at all}: the
-differential verifier reaches the same \Ltworate{}
-(\(\Delta_{\text{L2--L1}}=\LtwoOverLone{}\)), agreeing with the single-thread check
-on every one of the \Npairs{} paired cells. The gain over single-shot generation is
-the loop's, not the verifier's. This does not contradict the design argument that a
-single-configuration check is \emph{structurally} blind to nondeterministic
-races---that remains true---but it shows the argument is only \emph{actionable}
-when models actually emit such races, which here they did not.
+\noindent\textbf{The repair loop did the work, not the finer checker.}
+Holding the model, prompt, and repair budget fixed and changing only the checking tool moves
+robust correctness from \Lzerorate{} (no tool) to \Lonerate{} once there is a repair loop---
+and then not at all: the full thread-sweep verifier reaches the same \Ltworate{}
+($\Delta_{\text{L2--L1}}=\LtwoOverLone{}$), agreeing with the one-thread check on every one of
+the \Npairs{} paired cells. The gain over single-shot is the loop's, not the checker's. This
+does not contradict the design argument that a one-run check is \emph{structurally} blind to
+nondeterministic races---that stays true---but it shows the argument only bites when the
+models actually write such races, which here they did not.
 
 \vspace{3pt}
-\noindent\textbf{When differential verification pays off.}
-The verifier is cheap---compile once, run a handful of thread counts with a few
-repetitions against a serial reference---so its cost is a low, fixed premium. What
-our study measures is the \emph{payout}: zero, when the model$\times$task
-distribution produces no silent races. The payout is not zero in general---our
-injected-race control (Table~\ref{tab:injected}) confirms the verifier rejects
-every racy program the single-thread check accepts. It grows
-with the race-proneness of that distribution: weaker or non-code-specialized models
-that reach for manual shared-state updates instead of reduction clauses; tasks
-whose natural parallelization invites a race rather than a library idiom; and the
-distributed-memory (MPI) and GPU (CUDA) regimes our harness supports but we did not
-stress here. The right way to spend the premium is to \emph{measure} it: run the
-differential gate, watch how often L1 and L2 diverge for your models and tasks, and
-keep the gate where they do.
+\noindent\textbf{When the finer checker does pay off.}
+The verifier is cheap---compile once, run a few thread counts a few times against the serial
+reference---so its cost is a small, fixed premium. What our study measures is the
+\emph{payout}, which is zero when the model$\times$task mix produces no silent races. It is
+not zero in general: our injected-race control (Table~\ref{tab:injected}) confirms the
+verifier rejects every racy program the one-thread check waves through. The payout grows with
+how race-prone the mix is: weaker or non-code models that reach for manual shared-state updates
+instead of a reduction; tasks whose natural parallelization invites a race; and the MPI and
+CUDA settings our harness supports but we did not stress here. The right way to spend the
+premium is to \emph{measure} it---run the differential gate, watch how often L1 and L2
+disagree for your models and tasks, and keep it where they do.
 
 \vspace{3pt}
-\noindent\textbf{From gate to reward: a two-axis verification-guided objective.}
-The acceptance gate an agent applies is also the reward a verifiable-reward RL loop would
-optimize~\cite{rlvr,grpo}, and this is where the gameability becomes concrete rather than
-theoretical. Treating the set of accepted programs for a task as the candidates a
-generator (or a best-of-$N$/GRPO selection) chooses among, a correctness-only reward is
-\emph{indifferent}: every robust program scores identically, so selection realizes only
-the mean of the pool, whereas a two-axis reward (correctness times realized efficiency)
-selects the fastest. On the \NmultiTask{} tasks with more than one accepted program, this
-gap is not small: a correctness-only reward realizes a mean \RewardRandom{}$\times$
-8-thread speedup against the two-axis reward's \RewardTwoAxis{}$\times$
-(\RewardGainPct{}\% more), and on the most dispersed task it is the difference between a
-\RewardSpreadLo{}$\times$ and a \RewardSpreadHi{}$\times$ program the correctness reward
-rates equally. The constructive consequence, which we frame as future
-work, is a \emph{second verification gate}: a performance gate whose termination
-condition is a self-speedup target and which, crucially, is guarded by the correctness
-gate---every optimization must remain robust---so that optimizing the two-axis reward can
-never be satisfied by fast-but-wrong code. This is the natural home for the negative
-result: once correctness saturates, the verification-guided objective should carry the
-second axis. We distinguish this from prior performance-rewarded HPC code
-generation~\cite{pareval}, which optimizes speed directly; our point is narrower and about
-the \emph{reward's specification}---a single-axis correctness reward is gameable by
-construction, and we measure what that costs.
+\noindent\textbf{From a finding to a fix: a two-axis reward.}
+The check an agent accepts on is also the reward a verifiable-reward RL loop would
+optimize~\cite{rlvr,grpo}, and that is where the gameability stops being theoretical. Treat the
+set of accepted programs for a task as the candidates a generator---or a best-of-$N$/GRPO
+selection---chooses among. A correctness-only reward cannot choose: every robust program ties,
+so an uninformed pick lands on the pool average. A two-axis reward (correct times fast) picks
+the fastest. On the \NmultiTask{} tasks with more than one accepted program the gap is real: a
+correctness-only reward realizes a mean \RewardRandom{}$\times$ 8-thread speedup against the
+two-axis reward's \RewardTwoAxis{}$\times$ (\RewardGainPct{}\% more), and on the most spread-out
+task it is the difference between a \RewardSpreadLo{}$\times$ and a \RewardSpreadHi{}$\times$
+program the correctness reward calls equal. The fix, which we frame as future work, is a
+\emph{second checked stage}: a performance gate that ends on a speed target and is
+\emph{guarded} by the correctness gate---every optimization has to stay robust---so that chasing
+the reward can never buy a wrong answer. This is the natural home for the negative result: once
+correctness saturates, the reward should carry the second axis. We are careful to separate this
+from prior work that rewards speed directly~\cite{pareval}; our point is narrower and about the
+reward's \emph{specification}---a single-axis correctness reward is gameable by construction, and
+we measure what that costs.
 
 \vspace{3pt}
-\noindent\textbf{Threats to validity.}
-\emph{Construct.} We study OpenMP shared-memory parallelism over
-ParEval's tasks and serial references; distributed-memory (MPI) and GPU (CUDA)
-hazards, though supported by our harness, are left for future work, and the hazard
-taxonomy is not exhaustive. Our primary race evidence is
-\emph{output-differential}, but we do not rely on it alone: we cross-checked every
-accepted program with a happens-before detector (Archer/ThreadSanitizer with OMPT
-annotations~\cite{archer,tsan}), which agreed---\NsanRaces{} races in the
-\NsanTimed{} certified programs---while correctly flagging our injected and
-open-model races, so the null is corroborated by an independent instrument rather
-than an artifact of detector power. We still report it conservatively as a bound:
-with $0$ observed, the silent-failure risk is under $\approx\!5\%$ at 95\%
-confidence (rule of three). The performance finding does not share this
-fragility---wall-time is directly measured.
-\emph{Internal.} Each task has a single serial reference; because it is
-sequential, it is immune to the parallel hazards under test, but it fixes the
-task's intended semantics. The developer-default configuration ($\tau{=}1$) is a
-modeling choice for $\mathcal{S}$, chosen as the most failure-masking single run
-so that $\Delta$ upper-bounds what a lucky local check could hide.
-\emph{External.} Our \Nmodels{} models are drawn from a single provider
-(general, preceding-generation, code-specialized, and higher-reasoning tiers) over
-\Ntasks{} tasks; holding capability high sharpens
-the ablation but makes the near-absence of races unsurprising, and neither the
-null nor the point estimates need transfer to other vendors, weaker models, larger
-task sets, or prompt/temperature regimes. That the null held even for a
-code-specialized model tempers, but does not remove, this threat. Because our
-harness reaches any model
-through one uniform API, cross-vendor and weaker-model replication is the most
-immediate extension. We report Wilson intervals and read point estimates alongside
-them rather than as precise rankings; with \Nmodels{}$\times$\Ntasks{} cells the
-intervals are wide.
+\noindent\textbf{What could be wrong.}
+\emph{Construct.} We study shared-memory OpenMP over ParEval's tasks and serial references; the
+MPI and CUDA cases, though our harness supports them, are left for future work, and the hazard
+list is not exhaustive. Our main race evidence is output-differential, but we do not lean on it
+alone: we cross-checked every accepted program with a happens-before detector (Archer/
+ThreadSanitizer with OMPT annotations~\cite{archer,tsan}), which agreed---\NsanRaces{} races in
+the \NsanTimed{} accepted programs---while correctly flagging our injected and open-model races.
+So the null is backed by a second, independent instrument, not by one weak detector. We still
+report it conservatively as a bound: with zero observed, the silent-failure risk is under about
+$5\%$ at 95\% confidence (the rule of three). The speed finding does not share this fragility---
+wall-time is measured directly.
+\emph{Internal.} Each task has one serial reference; being sequential it is immune to the bugs
+under test, but it does fix what the task means. Using one thread as the ``developer default''
+is a modeling choice, picked as the most forgiving single run so the gap upper-bounds what a
+lucky local check could hide.
+\emph{External.} Our \Nmodels{} models come from one provider over \Ntasks{} tasks; holding
+capability high sharpens the comparison but makes the near-absence of races unsurprising, and
+neither the null nor the point estimates need carry to other vendors, weaker models, larger task
+sets, or different prompt/temperature settings. That the null held even for a code-specialized
+model softens, but does not remove, this. Because our harness reaches any model through one API,
+cross-vendor and weaker-model replication is the most immediate extension. We report Wilson
+intervals and read the point estimates alongside them, not as precise rankings; with
+\Nmodels{}$\times$\Ntasks{} cells the intervals are wide.
 
 \vspace{3pt}
-\noindent\textbf{Recommendations.}
-For teams adopting agentic assistants for HPC software, a repair loop is clearly
-worth having: it supplied the only improvement we measured. A differential-
-verification gate---validate across thread counts and repeated runs against a
-trusted reference, rather than trusting a single successful execution---is cheap
-insurance we still recommend, but with eyes open: for capable models on idiomatic
-tasks its marginal value over a single-thread check may be nil, and the residual
-failures are algorithmic errors that call for better generation or stronger repair,
-not finer verification. Treat the gate as instrumentation as much as protection:
-it is also how you \emph{learn} whether your models write racy code.
+\noindent\textbf{What to do about it.}
+For teams adopting agentic assistants for HPC, a repair loop is clearly worth having---it gave
+the only improvement we measured. A differential gate---check across thread counts and repeats
+against a trusted reference, rather than trusting one good run---is cheap insurance we still
+recommend, but with eyes open: for strong models on ordinary tasks its extra value over a
+one-thread check may be nil, and the leftover failures are plain algorithm bugs that call for
+better generation or repair, not finer checking. Treat the gate as instrumentation as much as
+protection: it is also how you \emph{learn} whether your models write racy code.
