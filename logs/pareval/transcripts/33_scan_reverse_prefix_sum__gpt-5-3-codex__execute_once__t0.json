@@ -1,0 +1,45 @@
+{
+  "ts": "2026-07-10T20:43:33.403404+00:00",
+  "task": "33_scan_reverse_prefix_sum",
+  "type": "scan",
+  "model": "gpt-5.3-codex",
+  "condition": "execute_once",
+  "trial": 0,
+  "steps": [
+    {
+      "round": 0,
+      "verdict": "NOT_ROBUST",
+      "diag": "validation FAIL on 1 of 1 thread/rep runs (race/order-dependence)"
+    },
+    {
+      "round": 1,
+      "verdict": "NOT_ROBUST",
+      "diag": "validation FAIL on 1 of 1 thread/rep runs (race/order-dependence)"
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use OpenMP to compute in parallel.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const int n = static_cast<int>(x.size());\n    output.resize(n);\n    if (n == 0) return;\n\n    int max_threads = 1;\n    #pragma omp parallel\n    {\n        #pragma omp single\n        {\n            max_threads = omp_get_num_threads();\n        }\n    }\n\n    std::vector<long long> blockSums(max_threads, 0LL);\n    std::vector<long long> blockOffsets(max_threads, 0LL);\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        const int T   = omp_get_num_threads();\n\n        const int chunk = (n + T - 1) / T;\n        const int start = tid * chunk;\n        const int end   = (start + chunk < n) ? (start + chunk) : n;\n\n        long long localSum = 0;\n        for (int i = start; i < end; ++i) {\n            localSum += static_cast<long long>(x[i]);\n            output[i] = static_cast<int>(localSum);\n        }\n        blockSums[tid] = localSum;\n\n        #pragma omp barrier\n\n        #pragma omp single\n        {\n            long long acc = 0;\n            for (int t = 0; t < T; ++t) {\n                blockOffsets[t] = acc;\n                acc += blockSums[t];\n            }\n        }\n\n        #pragma omp barrier\n\n        const long long add = blockOffsets[tid];\n        for (int i = start; i < end; ++i) {\n            output[i] = static_cast<int>(static_cast<long long>(output[i]) + add);\n        }\n    }\n}\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: NOT_ROBUST. validation FAIL on 1 of 1 thread/rep runs (race/order-dependence). Return the corrected complete function in one ```cpp block."
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const int n = static_cast<int>(x.size());\n    output.resize(n);\n    if (n == 0) return;\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        const int T   = omp_get_num_threads();\n\n        // Partition [0, n) into contiguous blocks deterministically.\n        const int start = (tid * n) / T;\n        const int end   = ((tid + 1) * n) / T; // exclusive\n\n        // Compute local prefix sum within this block.\n        long long localSum = 0;\n        for (int i = start; i < end; ++i) {\n            localSum += static_cast<long long>(x[i]);\n            output[i] = static_cast<int>(localSum);\n        }\n\n        // Compute offset = sum of all prior blocks.\n        long long offset = 0;\n        for (int p = 0; p < tid; ++p) {\n            const int ps = (p * n) / T;\n            const int pe = ((p + 1) * n) / T;\n            for (int i = ps; i < pe; ++i) {\n                offset += static_cast<long long>(x[i]);\n            }\n        }\n\n        // Apply offset to this block.\n        for (int i = start; i < end; ++i) {\n            output[i] = static_cast<int>(static_cast<long long>(output[i]) + offset);\n        }\n    }\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const int n = static_cast<int>(x.size());\n    output.resize(n);\n    if (n == 0) return;\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        const int T   = omp_get_num_threads();\n\n        // Partition [0, n) into contiguous blocks deterministically.\n        const int start = (tid * n) / T;\n        const int end   = ((tid + 1) * n) / T; // exclusive\n\n        // Compute local prefix sum within this block.\n        long long localSum = 0;\n        for (int i = start; i < end; ++i) {\n            localSum += static_cast<long long>(x[i]);\n            output[i] = static_cast<int>(localSum);\n        }\n\n        // Compute offset = sum of all prior blocks.\n        long long offset = 0;\n        for (int p = 0; p < tid; ++p) {\n            const int ps = (p * n) / T;\n            const int pe = ((p + 1) * n) / T;\n            for (int i = ps; i < pe; ++i) {\n                offset += static_cast<long long>(x[i]);\n            }\n        }\n\n        // Apply offset to this block.\n        for (int i = start; i < end; ++i) {\n            output[i] = static_cast<int>(static_cast<long long>(output[i]) + offset);\n        }\n    }\n}",
+  "final_verdict": "NOT_ROBUST",
+  "robust": false
+}

@@ -1,0 +1,43 @@
+{
+  "ts": "2026-07-12T15:28:32.620033+00:00",
+  "model": "gpt-5.4-pro",
+  "api_response": {
+    "id": "resp_0ec567fe9e0ebcd0006a53b24ff4ec8197b1708c4d04b9f9e8",
+    "served_model": "gpt-5.4-pro",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 630,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 1903,
+      "output_tokens_details": {
+        "reasoning_tokens": 1547
+      },
+      "total_tokens": 2533
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    size_t q1 = 0;\n    size_t q2 = 0;\n    size_t q3 = 0;\n    size_t q4 = 0;\n\n    const long long n = static_cast<long long>(points.size());\n\n    #pragma omp parallel for default(none) shared(points, n) reduction(+:q1, q2, q3, q4)\n    for (long long i = 0; i < n; ++i) {\n        const Point& p = points[static_cast<std::size_t>(i)];\n\n        if (p.x > 0.0 && p.y > 0.0) {\n            ++q1; // Quadrant I\n        } else if (p.x < 0.0 && p.y > 0.0) {\n            ++q2; // Quadrant II\n        } else if (p.x < 0.0 && p.y < 0.0) {\n            ++q3; // Quadrant III\n        } else if (p.x > 0.0 && p.y < 0.0) {\n            ++q4; // Quadrant IV\n        }\n        // Points lying on an axis are not counted in any quadrant.\n    }\n\n    bins = {q1, q2, q3, q4};\n}\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: CRASH. generated-code.hpp:14:33: error: \u2018Point\u2019 was not declared in this scope. Return the corrected complete function in one ```cpp block."
+    }
+  ],
+  "raw_response": "```cpp\n#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nusing std::size_t;\n\nstruct Point {\n    double x, y;\n};\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    size_t q1 = 0, q2 = 0, q3 = 0, q4 = 0;\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(points.size());\n\n    #pragma omp parallel for default(none) shared(points, n) reduction(+: q1, q2, q3, q4)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        const Point& p = points[static_cast<size_t>(i)];\n\n        if (p.x > 0.0) {\n            if (p.y > 0.0) {\n                ++q1; // Quadrant I\n            } else if (p.y < 0.0) {\n                ++q4; // Quadrant IV\n            }\n        } else if (p.x < 0.0) {\n            if (p.y > 0.0) {\n                ++q2; // Quadrant II\n            } else if (p.y < 0.0) {\n                ++q3; // Quadrant III\n            }\n        }\n        // Points on an axis are not counted.\n    }\n\n    bins[0] = q1;\n    bins[1] = q2;\n    bins[2] = q3;\n    bins[3] = q4;\n}\n```",
+  "extracted_code": "#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nusing std::size_t;\n\nstruct Point {\n    double x, y;\n};\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    size_t q1 = 0, q2 = 0, q3 = 0, q4 = 0;\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(points.size());\n\n    #pragma omp parallel for default(none) shared(points, n) reduction(+: q1, q2, q3, q4)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        const Point& p = points[static_cast<size_t>(i)];\n\n        if (p.x > 0.0) {\n            if (p.y > 0.0) {\n                ++q1; // Quadrant I\n            } else if (p.y < 0.0) {\n                ++q4; // Quadrant IV\n            }\n        } else if (p.x < 0.0) {\n            if (p.y > 0.0) {\n                ++q2; // Quadrant II\n            } else if (p.y < 0.0) {\n                ++q3; // Quadrant III\n            }\n        }\n        // Points on an axis are not counted.\n    }\n\n    bins[0] = q1;\n    bins[1] = q2;\n    bins[2] = q3;\n    bins[3] = q4;\n}"
+}

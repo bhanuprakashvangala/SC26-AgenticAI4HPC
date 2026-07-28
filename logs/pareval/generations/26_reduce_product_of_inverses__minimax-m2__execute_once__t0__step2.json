@@ -1,0 +1,47 @@
+{
+  "ts": "2026-07-28T00:08:56.098981+00:00",
+  "model": "minimax-m2",
+  "api_response": {
+    "id": "chatcmpl-9506e11e-0147-945c-b025-97c59d2f84fa",
+    "served_model": "MiniMaxAI/MiniMax-M2.7",
+    "created": 1785197255,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1442+gdd72658e7-tp4-ep-3d05fb0e",
+    "usage": {
+      "completion_tokens": 3775,
+      "prompt_tokens": 428,
+      "total_tokens": 4203,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "stop",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the product of the vector x with every odd indexed element inverted.\n   i.e. x_0 * 1/x_1 * x_2 * 1/x_3 * x_4 ...\n   Use OpenMP to compute product in parallel.\n   Example:\n\n   input: [4, 2, 10, 4, 5]\n   output: 25\n*/\ndouble productWithInverses(std::vector<double> const& x) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: CRASH. cpu.cc:40:18: error: 'productWithInverses' was not declared in this scope; did you mean 'correctProductWithInverses'?. Return the corrected complete function in one ```cpp block."
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <omp.h>\n#include <vector>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double result = 1.0;\n    \n    #pragma omp parallel for reduction(*:result)\n    for (size_t i = 0; i < x.size(); ++i) {\n        if (i % 2 == 0) {\n            result *= x[i];\n        } else {\n            result *= 1.0 / x[i];\n        }\n    }\n    \n    return result;\n}\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: NOT_ROBUST. validation FAIL on 1 of 1 thread/rep runs (race/order-dependence). Return the corrected complete function in one ```cpp block."
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <vector>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double result = 1.0;\n    \n    #pragma omp parallel\n    {\n        double local_result = 1.0;\n        \n        #pragma omp for\n        for (size_t i = 0; i < x.size(); ++i) {\n            if (i % 2 == 0) {\n                local_result *= x[i];\n            } else {\n                local_result *= 1.0 / x[i];\n            }\n        }\n        \n        #pragma omp critical\n        {\n            result *= local_result;\n        }\n    }\n    \n    return result;\n}\n```",
+  "extracted_code": "#include <omp.h>\n#include <vector>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double result = 1.0;\n    \n    #pragma omp parallel\n    {\n        double local_result = 1.0;\n        \n        #pragma omp for\n        for (size_t i = 0; i < x.size(); ++i) {\n            if (i % 2 == 0) {\n                local_result *= x[i];\n            } else {\n                local_result *= 1.0 / x[i];\n            }\n        }\n        \n        #pragma omp critical\n        {\n            result *= local_result;\n        }\n    }\n    \n    return result;\n}"
+}

@@ -1,0 +1,39 @@
+{
+  "ts": "2026-07-28T00:04:34.184541+00:00",
+  "model": "minimax-m2",
+  "api_response": {
+    "id": "chatcmpl-07c6dfca-1da5-9e1e-bb39-a6ccba0df087",
+    "served_model": "MiniMaxAI/MiniMax-M2.7",
+    "created": 1785197047,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1442+gdd72658e7-tp4-ep-3d05fb0e",
+    "usage": {
+      "completion_tokens": 1446,
+      "prompt_tokens": 285,
+      "total_tokens": 1731,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "stop",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: CRASH. cpu.cc:53:14: error: 'maxDegree' was not declared in this scope. Return the corrected complete function in one ```cpp block."
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <vector>\n#include <cstddef>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int maxDeg = 0;\n    #pragma omp parallel for reduction(max:maxDeg)\n    for (size_t i = 0; i < N; ++i) {\n        int deg = 0;\n        for (size_t j = 0; j < N; ++j) {\n            if (A[i * N + j] != 0) ++deg;\n        }\n        if (deg > maxDeg) maxDeg = deg;\n    }\n    return maxDeg;\n}\n```",
+  "extracted_code": "#include <omp.h>\n#include <vector>\n#include <cstddef>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int maxDeg = 0;\n    #pragma omp parallel for reduction(max:maxDeg)\n    for (size_t i = 0; i < N; ++i) {\n        int deg = 0;\n        for (size_t j = 0; j < N; ++j) {\n            if (A[i * N + j] != 0) ++deg;\n        }\n        if (deg > maxDeg) maxDeg = deg;\n    }\n    return maxDeg;\n}"
+}

@@ -1,0 +1,33 @@
+{
+  "ts": "2026-07-28T00:16:38.687201+00:00",
+  "task": "22_histogram_count_quadrants",
+  "type": "histogram",
+  "model": "minimax-m2",
+  "condition": "differential_verify",
+  "trial": 0,
+  "steps": [
+    {
+      "round": 0,
+      "verdict": "ROBUST_CORRECT",
+      "diag": ""
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <omp.h>\n#include <vector>\n#include <array>\n\nstruct Point {\n   double x, y;\n};\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    // Initialize the output bins to zero\n    bins.fill(0);\n\n    // Parallel counting with private local counters\n    #pragma omp parallel\n    {\n        // Each thread has its own local counts for the four quadrants\n        size_t local[4] = {0, 0, 0, 0};\n\n        // Distribute points among threads\n        #pragma omp for schedule(static) nowait\n        for (size_t i = 0; i < points.size(); ++i) {\n            const Point &p = points[i];\n            int q = -1; // -1 indicates a point on an axis\n\n            if (p.x > 0 && p.y > 0) {\n                q = 0; // Quadrant I\n            } else if (p.x < 0 && p.y > 0) {\n                q = 1; // Quadrant II\n            } else if (p.x < 0 && p.y < 0) {\n                q = 2; // Quadrant III\n            } else if (p.x > 0 && p.y < 0) {\n                q = 3; // Quadrant IV\n            }\n\n            if (q != -1) {\n                ++local[q];\n            }\n        }\n\n        // Merge local counts into the shared bins array\n        #pragma omp critical\n        {\n            for (int i = 0; i < 4; ++i) {\n                bins[i] += local[i];\n            }\n        }\n    }\n}\n```"
+    }
+  ],
+  "final_code": "#include <omp.h>\n#include <vector>\n#include <array>\n\nstruct Point {\n   double x, y;\n};\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    // Initialize the output bins to zero\n    bins.fill(0);\n\n    // Parallel counting with private local counters\n    #pragma omp parallel\n    {\n        // Each thread has its own local counts for the four quadrants\n        size_t local[4] = {0, 0, 0, 0};\n\n        // Distribute points among threads\n        #pragma omp for schedule(static) nowait\n        for (size_t i = 0; i < points.size(); ++i) {\n            const Point &p = points[i];\n            int q = -1; // -1 indicates a point on an axis\n\n            if (p.x > 0 && p.y > 0) {\n                q = 0; // Quadrant I\n            } else if (p.x < 0 && p.y > 0) {\n                q = 1; // Quadrant II\n            } else if (p.x < 0 && p.y < 0) {\n                q = 2; // Quadrant III\n            } else if (p.x > 0 && p.y < 0) {\n                q = 3; // Quadrant IV\n            }\n\n            if (q != -1) {\n                ++local[q];\n            }\n        }\n\n        // Merge local counts into the shared bins array\n        #pragma omp critical\n        {\n            for (int i = 0; i < 4; ++i) {\n                bins[i] += local[i];\n            }\n        }\n    }\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

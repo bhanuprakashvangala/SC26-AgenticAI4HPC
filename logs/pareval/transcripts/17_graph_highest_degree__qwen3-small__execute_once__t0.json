@@ -1,0 +1,33 @@
+{
+  "ts": "2026-07-25T23:06:39.735867+00:00",
+  "task": "17_graph_highest_degree",
+  "type": "graph",
+  "model": "qwen3-small",
+  "condition": "execute_once",
+  "trial": 0,
+  "steps": [
+    {
+      "round": 0,
+      "verdict": "ROBUST_CORRECT",
+      "diag": ""
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <omp.h>\n#include <vector>\n#include <algorithm>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) return 0;\n    \n    int globalMax = 0;\n    \n    #pragma omp parallel\n    {\n        int localMax = 0;\n        \n        #pragma omp for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            int degree = 0;\n            for (size_t j = 0; j < N; ++j) {\n                if (A[i * N + j] != 0) {\n                    degree++;\n                }\n            }\n            if (degree > localMax) {\n                localMax = degree;\n            }\n        }\n        \n        #pragma omp critical\n        {\n            if (localMax > globalMax) {\n                globalMax = localMax;\n            }\n        }\n    }\n    \n    return globalMax;\n}\n```"
+    }
+  ],
+  "final_code": "#include <omp.h>\n#include <vector>\n#include <algorithm>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) return 0;\n    \n    int globalMax = 0;\n    \n    #pragma omp parallel\n    {\n        int localMax = 0;\n        \n        #pragma omp for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            int degree = 0;\n            for (size_t j = 0; j < N; ++j) {\n                if (A[i * N + j] != 0) {\n                    degree++;\n                }\n            }\n            if (degree > localMax) {\n                localMax = degree;\n            }\n        }\n        \n        #pragma omp critical\n        {\n            if (localMax > globalMax) {\n                globalMax = localMax;\n            }\n        }\n    }\n    \n    return globalMax;\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

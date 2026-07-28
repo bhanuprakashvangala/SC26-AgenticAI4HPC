@@ -1,0 +1,37 @@
+# Secrets / credentials — never commit
+.secrets/
+*.key
+*.pem
+*_key.txt
+*apikey*
+*secret*
+id_rsa*
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Large external checkouts / archives
+external/ParEval/
+_archive_benchmark/
+
+# Scratch / build artifacts
+*.aux
+*.log
+*.bbl
+*.blg
+*.out
+*.synctex.gz
+_pg-*.png
+
+# VM scratch
+vm/*.tmp
+
+# Archived cruft from the abandoned Spark direction
+_archive_spark/
+
+# Unrelated personal paper (not part of this project)
+AAAIMag26_DepGap.pdf
+

@@ -1,0 +1,39 @@
+{
+  "ts": "2026-07-27T23:54:18.982478+00:00",
+  "model": "minimax-m2",
+  "api_response": {
+    "id": "chatcmpl-a763ef69-220b-9b03-84b7-1d9c08d988a4",
+    "served_model": "MiniMaxAI/MiniMax-M2.7",
+    "created": 1785196424,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1442+gdd72658e7-tp4-ep-3d05fb0e",
+    "usage": {
+      "completion_tokens": 2087,
+      "prompt_tokens": 311,
+      "total_tokens": 2398,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "stop",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Vector x contains values between 0 and 100, inclusive. Count the number of\n   values in [0,10), [10, 20), [20, 30), ... and store the counts in `bins`.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [7, 32, 95, 12, 39, 32, 11, 71, 70, 66]\n   output: [1, 2, 0, 3, 0, 0, 1, 2, 0, 1]\n*/\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: CRASH. cpu.cc:43:5: error: 'binsBy10Count' was not declared in this scope. Return the corrected complete function in one ```cpp block."
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <array>\n#include <omp.h>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    // Initialise the output array to zeros\n    bins.fill(0);\n\n    // Parallel counting with a private array per thread\n    #pragma omp parallel\n    {\n        // Each thread gets its own zero\u2011initialised counter array\n        std::array<size_t, 10> private_bins{};\n\n        // Distribute the work among threads\n        #pragma omp for\n        for (size_t i = 0; i < x.size(); ++i) {\n            double val = x[i];\n            // Determine the bin index (0\u20119). Values at exactly 100 go to bin 9.\n            size_t bin = static_cast<size_t>(val / 10.0);\n            if (bin >= 10) bin = 9;\n            ++private_bins[bin];\n        }\n\n        // Merge the private counts into the shared result (critical to avoid races)\n        #pragma omp critical\n        {\n            for (size_t b = 0; b < 10; ++b) {\n                bins[b] += private_bins[b];\n            }\n        }\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <array>\n#include <omp.h>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    // Initialise the output array to zeros\n    bins.fill(0);\n\n    // Parallel counting with a private array per thread\n    #pragma omp parallel\n    {\n        // Each thread gets its own zero\u2011initialised counter array\n        std::array<size_t, 10> private_bins{};\n\n        // Distribute the work among threads\n        #pragma omp for\n        for (size_t i = 0; i < x.size(); ++i) {\n            double val = x[i];\n            // Determine the bin index (0\u20119). Values at exactly 100 go to bin 9.\n            size_t bin = static_cast<size_t>(val / 10.0);\n            if (bin >= 10) bin = 9;\n            ++private_bins[bin];\n        }\n\n        // Merge the private counts into the shared result (critical to avoid races)\n        #pragma omp critical\n        {\n            for (size_t b = 0; b < 10; ++b) {\n                bins[b] += private_bins[b];\n            }\n        }\n    }\n}"
+}

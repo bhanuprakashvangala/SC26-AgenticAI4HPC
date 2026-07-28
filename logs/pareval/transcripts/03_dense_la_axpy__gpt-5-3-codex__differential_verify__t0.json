@@ -1,0 +1,33 @@
+{
+  "ts": "2026-07-24T07:55:04.238427+00:00",
+  "task": "03_dense_la_axpy",
+  "type": "dense_la",
+  "model": "gpt-5.3-codex",
+  "condition": "differential_verify",
+  "trial": 0,
+  "steps": [
+    {
+      "round": 0,
+      "verdict": "ROBUST_CORRECT",
+      "diag": ""
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\nvoid axpy(double alpha, std::vector<double> const& x, std::vector<double> const& y, std::vector<double> &z) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <omp.h>\n#include <vector>\n#include <stdexcept>\n\n/* Compute z = alpha*x + y where x and y are vectors. Store the result in z.\n   Use OpenMP to compute in parallel.\n*/\nvoid axpy(double alpha, std::vector<double> const& x, std::vector<double> const& y, std::vector<double> &z) {\n    if (x.size() != y.size()) {\n        throw std::invalid_argument(\"axpy: x and y must have the same size\");\n    }\n\n    const std::size_t n = x.size();\n    z.resize(n);\n\n    #pragma omp parallel for\n    for (std::size_t i = 0; i < n; ++i) {\n        z[i] = alpha * x[i] + y[i];\n    }\n}\n```"
+    }
+  ],
+  "final_code": "#include <omp.h>\n#include <vector>\n#include <stdexcept>\n\n/* Compute z = alpha*x + y where x and y are vectors. Store the result in z.\n   Use OpenMP to compute in parallel.\n*/\nvoid axpy(double alpha, std::vector<double> const& x, std::vector<double> const& y, std::vector<double> &z) {\n    if (x.size() != y.size()) {\n        throw std::invalid_argument(\"axpy: x and y must have the same size\");\n    }\n\n    const std::size_t n = x.size();\n    z.resize(n);\n\n    #pragma omp parallel for\n    for (std::size_t i = 0; i < n; ++i) {\n        z[i] = alpha * x[i] + y[i];\n    }\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

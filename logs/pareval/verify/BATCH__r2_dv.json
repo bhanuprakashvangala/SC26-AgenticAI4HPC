@@ -1,0 +1,17 @@
+{
+  "ts": "2026-07-28T00:16:16.024308+00:00",
+  "threads": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "reps": 2,
+  "n_cells": 2,
+  "n_chunks": 1,
+  "cell_ids": [
+    "26_reduce_product_of_inverses__minimax-m2__differential_verify__t0",
+    "33_scan_reverse_prefix_sum__minimax-m2__differential_verify__t0"
+  ],
+  "raw": "CELL 26_reduce_product_of_inverses__minimax-m2__differential_verify__t0 VERDICT=CRASH DIAG=cpu.cc:40:18: error: 'productWithInverses' was not declared in this scope; did you mean 'correctProductWithInverses'? \nCELL 33_scan_reverse_prefix_sum__minimax-m2__differential_verify__t0 VERDICT=CRASH DIAG=cpu.cc:44:5: error: 'reversePrefixSum' was not declared in this scope; did you mean 'correctReversePrefixSum'? \nALLDONE\n\n"
+}

@@ -1,0 +1,50 @@
+{
+  "ts": "2026-07-24T07:34:16.515893+00:00",
+  "model": "gpt-5.4",
+  "api_response": {
+    "id": "chatcmpl-E54i99ihMNQcj0freQL8gySwHegI1",
+    "served_model": "gpt-5.4-2026-03-05",
+    "created": 1784878457,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 161,
+      "prompt_tokens": 229,
+      "total_tokens": 390,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 10,
+        "engine_ttft_ms": 112,
+        "engine_ttlt_ms": 1680,
+        "pre_inference_ms": 111,
+        "service_tbt_ms": 10,
+        "service_ttft_ms": 603,
+        "service_ttlt_ms": 2165,
+        "total_duration_ms": 2062,
+        "user_visible_ttft_ms": 492
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Multiply the matrix A by the vector x. Store the results in the vector y.\n   A is an MxN matrix stored in row-major, x has N elements, and y has M elements.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: A=[[1, -1, 2], [0, -3, 1]] x=[2, 1, 0]\n   output: y=[1, -3]\n*/\nvoid gemv(std::vector<double> const& A, std::vector<double> const& x, std::vector<double> &y, size_t M, size_t N) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nvoid gemv(std::vector<double> const& A, std::vector<double> const& x, std::vector<double> &y, size_t M, size_t N) {\n    y.resize(M);\n\n    #pragma omp parallel for default(none) shared(A, x, y, M, N)\n    for (std::size_t i = 0; i < M; ++i) {\n        double sum = 0.0;\n        for (std::size_t j = 0; j < N; ++j) {\n            sum += A[i * N + j] * x[j];\n        }\n        y[i] = sum;\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nvoid gemv(std::vector<double> const& A, std::vector<double> const& x, std::vector<double> &y, size_t M, size_t N) {\n    y.resize(M);\n\n    #pragma omp parallel for default(none) shared(A, x, y, M, N)\n    for (std::size_t i = 0; i < M; ++i) {\n        double sum = 0.0;\n        for (std::size_t j = 0; j < N; ++j) {\n            sum += A[i * N + j] * x[j];\n        }\n        y[i] = sum;\n    }\n}"
+}

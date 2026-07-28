@@ -1,0 +1,35 @@
+{
+  "ts": "2026-07-12T14:11:42.248862+00:00",
+  "model": "gpt-5.3-codex",
+  "api_response": {
+    "id": "resp_07d7c35d0f5c9c7d006a53a0978ea481948e9bf768007e134e",
+    "served_model": "gpt-5.3-codex",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 209,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 163,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 372
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the index of the first even number in the vector x.\n   Use OpenMP to parallelize the search.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\nsize_t findFirstEven(std::vector<int> const& x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <cstddef>\n#include <limits>\n#include <omp.h>\n\nsize_t findFirstEven(std::vector<int> const& x) {\n    size_t best = x.size();\n\n    #pragma omp parallel\n    {\n        size_t local_best = x.size();\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < x.size(); ++i) {\n            if ((x[i] % 2) == 0) {\n                if (i < local_best) {\n                    local_best = i;\n                }\n            }\n        }\n\n        #pragma omp critical\n        {\n            if (local_best < best) {\n                best = local_best;\n            }\n        }\n    }\n\n    return best;\n}\n```",
+  "extracted_code": "#include <vector>\n#include <cstddef>\n#include <limits>\n#include <omp.h>\n\nsize_t findFirstEven(std::vector<int> const& x) {\n    size_t best = x.size();\n\n    #pragma omp parallel\n    {\n        size_t local_best = x.size();\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < x.size(); ++i) {\n            if ((x[i] % 2) == 0) {\n                if (i < local_best) {\n                    local_best = i;\n                }\n            }\n        }\n\n        #pragma omp critical\n        {\n            if (local_best < best) {\n                best = local_best;\n            }\n        }\n    }\n\n    return best;\n}"
+}

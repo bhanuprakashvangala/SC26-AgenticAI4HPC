@@ -1,0 +1,45 @@
+{
+  "ts": "2026-07-10T09:11:20.453035+00:00",
+  "task": "33_scan_reverse_prefix_sum",
+  "type": "scan",
+  "model": "gpt-5.2",
+  "condition": "differential_verify",
+  "trial": 0,
+  "steps": [
+    {
+      "round": 0,
+      "verdict": "NOT_ROBUST",
+      "diag": "validation FAIL on 8 of 8 thread/rep runs (race/order-dependence)"
+    },
+    {
+      "round": 1,
+      "verdict": "NOT_ROBUST",
+      "diag": "validation FAIL on 8 of 8 thread/rep runs (race/order-dependence)"
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use OpenMP to compute in parallel.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const int n = static_cast<int>(x.size());\n    output.assign(n, 0);\n    if (n == 0) return;\n\n    int maxThreads = 1;\n#ifdef _OPENMP\n    maxThreads = omp_get_max_threads();\n#endif\n\n    std::vector<long long> blockSums(maxThreads, 0);\n\n#pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        const int nt  = omp_get_num_threads();\n\n        // Map threads to contiguous chunks [start, end)\n        const int base = n / nt;\n        const int rem  = n % nt;\n        const int start = tid * base + (tid < rem ? tid : rem);\n        const int count = base + (tid < rem ? 1 : 0);\n        const int end   = start + count;\n\n        // Phase 1: local reverse-prefix within each block (exclusive of later blocks)\n        long long localSum = 0;\n        for (int i = end - 1; i >= start; --i) {\n            localSum += static_cast<long long>(x[i]);\n            output[i] = static_cast<int>(localSum);\n        }\n        blockSums[tid] = localSum;\n\n#pragma omp barrier\n\n        // Phase 2: compute the sum of all blocks to the right of this one\n        long long add = 0;\n        for (int t = tid + 1; t < nt; ++t) add += blockSums[t];\n\n        // Phase 3: add that offset to each element in this block\n        if (add != 0) {\n            for (int i = start; i < end; ++i) {\n                output[i] = static_cast<int>(static_cast<long long>(output[i]) + add);\n            }\n        }\n    }\n}\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: NOT_ROBUST. validation FAIL on 8 of 8 thread/rep runs (race/order-dependence). Return the corrected complete function in one ```cpp block."
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const std::size_t n = x.size();\n    output.assign(n, 0);\n    if (n == 0) return;\n\n    // Parallel, race-free two-phase scheme:\n    // 1) Each thread computes reverse-prefix sums within its own contiguous block,\n    //    and writes its block total to blockSums[tid].\n    // 2) A single thread computes offsets (sum of blocks to the right) and stores\n    //    them into offsets[tid].\n    // 3) Each thread adds its offset to its block outputs.\n#pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        const int nt  = omp_get_num_threads();\n\n        // Allocate shared arrays once, by a single thread, then barrier.\n        static std::vector<long long> blockSums;\n        static std::vector<long long> offsets;\n\n#pragma omp single\n        {\n            blockSums.assign(static_cast<std::size_t>(nt), 0LL);\n            offsets.assign(static_cast<std::size_t>(nt), 0LL);\n        }\n\n#pragma omp barrier\n\n        // Contiguous block partitioning\n        const std::size_t base = n / static_cast<std::size_t>(nt);\n        const std::size_t rem  = n % static_cast<std::size_t>(nt);\n        const std::size_t start = static_cast<std::size_t>(tid) * base +\n                                  static_cast<std::size_t>(tid < static_cast<int>(rem) ? tid : static_cast<int>(rem));\n        const std::size_t count = base + (static_cast<std::size_t>(tid) < rem ? 1u : 0u);\n        const std::size_t end   = start + count;\n\n        // Phase 1: local reverse-prefix within [start, end)\n        long long local = 0;\n        for (std::size_t idx = end; idx > start; --idx) {\n            const std::size_t i = idx - 1;\n            local += static_cast<long long>(x[i]);\n            output[i] = static_cast<int>(local);\n        }\n        blockSums[static_cast<std::size_t>(tid)] = local;\n\n#pragma omp barrier\n\n        // Phase 2: compute per-thread offsets in a single thread (deterministic, no races)\n#pragma omp single\n        {\n            long long runningRight = 0;\n            // offsets[t] = sum of blockSums for blocks with index > t\n            for (int t = nt - 1; t >= 0; --t) {\n                offsets[static_cast<std::size_t>(t)] = runningRight;\n                runningRight += blockSums[static_cast<std::size_t>(t)];\n            }\n        }\n\n#pragma omp barrier\n\n        // Phase 3: add offset to each element in the block\n        const long long add = offsets[static_cast<std::size_t>(tid)];\n        if (add != 0) {\n            for (std::size_t i = start; i < end; ++i) {\n                output[i] = static_cast<int>(static_cast<long long>(output[i]) + add);\n            }\n        }\n    }\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const std::size_t n = x.size();\n    output.assign(n, 0);\n    if (n == 0) return;\n\n    // Parallel, race-free two-phase scheme:\n    // 1) Each thread computes reverse-prefix sums within its own contiguous block,\n    //    and writes its block total to blockSums[tid].\n    // 2) A single thread computes offsets (sum of blocks to the right) and stores\n    //    them into offsets[tid].\n    // 3) Each thread adds its offset to its block outputs.\n#pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        const int nt  = omp_get_num_threads();\n\n        // Allocate shared arrays once, by a single thread, then barrier.\n        static std::vector<long long> blockSums;\n        static std::vector<long long> offsets;\n\n#pragma omp single\n        {\n            blockSums.assign(static_cast<std::size_t>(nt), 0LL);\n            offsets.assign(static_cast<std::size_t>(nt), 0LL);\n        }\n\n#pragma omp barrier\n\n        // Contiguous block partitioning\n        const std::size_t base = n / static_cast<std::size_t>(nt);\n        const std::size_t rem  = n % static_cast<std::size_t>(nt);\n        const std::size_t start = static_cast<std::size_t>(tid) * base +\n                                  static_cast<std::size_t>(tid < static_cast<int>(rem) ? tid : static_cast<int>(rem));\n        const std::size_t count = base + (static_cast<std::size_t>(tid) < rem ? 1u : 0u);\n        const std::size_t end   = start + count;\n\n        // Phase 1: local reverse-prefix within [start, end)\n        long long local = 0;\n        for (std::size_t idx = end; idx > start; --idx) {\n            const std::size_t i = idx - 1;\n            local += static_cast<long long>(x[i]);\n            output[i] = static_cast<int>(local);\n        }\n        blockSums[static_cast<std::size_t>(tid)] = local;\n\n#pragma omp barrier\n\n        // Phase 2: compute per-thread offsets in a single thread (deterministic, no races)\n#pragma omp single\n        {\n            long long runningRight = 0;\n            // offsets[t] = sum of blockSums for blocks with index > t\n            for (int t = nt - 1; t >= 0; --t) {\n                offsets[static_cast<std::size_t>(t)] = runningRight;\n                runningRight += blockSums[static_cast<std::size_t>(t)];\n            }\n        }\n\n#pragma omp barrier\n\n        // Phase 3: add offset to each element in the block\n        const long long add = offsets[static_cast<std::size_t>(tid)];\n        if (add != 0) {\n            for (std::size_t i = start; i < end; ++i) {\n                output[i] = static_cast<int>(static_cast<long long>(output[i]) + add);\n            }\n        }\n    }\n}",
+  "final_verdict": "NOT_ROBUST",
+  "robust": false
+}

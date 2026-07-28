@@ -1,0 +1,31 @@
+{
+  "ts": "2026-07-25T23:08:01.884437+00:00",
+  "model": "gpt-oss",
+  "api_response": {
+    "id": "chatcmpl-1a99a885-fde7-970d-ae7e-e61f6271664a",
+    "served_model": "openai/gpt-oss-120b",
+    "created": 1785020850,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1095+g94c0ef300-tp2-ep-c49bb217",
+    "usage": {
+      "completion_tokens": 851,
+      "prompt_tokens": 312,
+      "total_tokens": 1163,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "stop",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Vector x contains values between 0 and 100, inclusive. Count the number of\n   values in [0,10), [10, 20), [20, 30), ... and store the counts in `bins`.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [7, 32, 95, 12, 39, 32, 11, 71, 70, 66]\n   output: [1, 2, 0, 3, 0, 0, 1, 2, 0, 1]\n*/\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <array>\n#include <algorithm>\n#include <omp.h>\n\n/*  Count how many values of x fall into each decile:\n        [0,10), [10,20), \u2026 , [90,100]   (the value 100 is placed in the last bin)\n    The result is stored in `bins`, which must contain exactly 10 elements.\n    The computation is performed in parallel with OpenMP and is correct for\n    any number of threads.\n*/\nvoid binsBy10Count(const std::vector<double>& x,\n                   std::array<std::size_t, 10>& bins)\n{\n    // Initialise the output bins.\n    bins.fill(0);\n\n    // OpenMP reduction on an array slice (OpenMP 4.5+).  This guarantees that\n    // each thread updates its private copy of the array and the private copies\n    // are safely combined at the end of the parallel region.\n    #pragma omp parallel for reduction(+:bins[:10]) schedule(static)\n    for (std::size_t i = 0; i < x.size(); ++i) {\n        // Determine the bin index.  Values exactly equal to 100 are placed\n        // in the last bin (index 9).\n        int idx = static_cast<int>(x[i] / 10.0);\n        idx = std::min(idx, 9);          // clamp 100 \u2192 9, also protects against overflow\n        idx = std::max(idx, 0);          // protect against negative values (should not happen)\n\n        bins[idx]++;                     // safe thanks to the reduction clause\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <array>\n#include <algorithm>\n#include <omp.h>\n\n/*  Count how many values of x fall into each decile:\n        [0,10), [10,20), \u2026 , [90,100]   (the value 100 is placed in the last bin)\n    The result is stored in `bins`, which must contain exactly 10 elements.\n    The computation is performed in parallel with OpenMP and is correct for\n    any number of threads.\n*/\nvoid binsBy10Count(const std::vector<double>& x,\n                   std::array<std::size_t, 10>& bins)\n{\n    // Initialise the output bins.\n    bins.fill(0);\n\n    // OpenMP reduction on an array slice (OpenMP 4.5+).  This guarantees that\n    // each thread updates its private copy of the array and the private copies\n    // are safely combined at the end of the parallel region.\n    #pragma omp parallel for reduction(+:bins[:10]) schedule(static)\n    for (std::size_t i = 0; i < x.size(); ++i) {\n        // Determine the bin index.  Values exactly equal to 100 are placed\n        // in the last bin (index 9).\n        int idx = static_cast<int>(x[i] / 10.0);\n        idx = std::min(idx, 9);          // clamp 100 \u2192 9, also protects against overflow\n        idx = std::max(idx, 0);          // protect against negative values (should not happen)\n\n        bins[idx]++;                     // safe thanks to the reduction clause\n    }\n}"
+}

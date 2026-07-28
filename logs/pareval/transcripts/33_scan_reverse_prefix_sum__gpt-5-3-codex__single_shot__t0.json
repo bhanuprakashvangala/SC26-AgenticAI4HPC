@@ -1,0 +1,26 @@
+{
+  "ts": "2026-07-10T20:43:33.402660+00:00",
+  "task": "33_scan_reverse_prefix_sum",
+  "type": "scan",
+  "model": "gpt-5.3-codex",
+  "condition": "single_shot",
+  "trial": 0,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use OpenMP to compute in parallel.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const int n = static_cast<int>(x.size());\n    output.resize(n);\n    if (n == 0) return;\n\n    int num_threads = 1;\n\n    // Per-thread partial sums over contiguous chunks from right to left.\n    std::vector<long long> chunk_sum;\n    std::vector<long long> carry_from_right;\n\n    #pragma omp parallel\n    {\n        int tid = omp_get_thread_num();\n\n        #pragma omp single\n        {\n            num_threads = omp_get_num_threads();\n            chunk_sum.assign(num_threads, 0LL);\n            carry_from_right.assign(num_threads, 0LL);\n        }\n\n        const int T = num_threads;\n\n        // Static block partitioning (contiguous).\n        const int base = n / T;\n        const int rem  = n % T;\n        const int start = tid * base + (tid < rem ? tid : rem);\n        const int len   = base + (tid < rem ? 1 : 0);\n        const int end   = start + len; // exclusive\n\n        long long local = 0;\n\n        // Reverse prefix within each chunk: scan from right to left.\n        for (int i = end - 1; i >= start; --i) {\n            local += x[i];\n            output[i] = static_cast<int>(local);\n        }\n\n        // Safe: each thread writes its own index.\n        chunk_sum[tid] = local;\n\n        #pragma omp barrier\n\n        // Compute carry for this chunk from all chunks to its right.\n        long long carry = 0;\n        for (int t = tid + 1; t < T; ++t) {\n            carry += chunk_sum[t];\n        }\n        carry_from_right[tid] = carry;\n\n        #pragma omp barrier\n\n        // Add carry to all elements in this chunk.\n        for (int i = start; i < end; ++i) {\n            output[i] = static_cast<int>(output[i] + carry_from_right[tid]);\n        }\n    }\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const int n = static_cast<int>(x.size());\n    output.resize(n);\n    if (n == 0) return;\n\n    int num_threads = 1;\n\n    // Per-thread partial sums over contiguous chunks from right to left.\n    std::vector<long long> chunk_sum;\n    std::vector<long long> carry_from_right;\n\n    #pragma omp parallel\n    {\n        int tid = omp_get_thread_num();\n\n        #pragma omp single\n        {\n            num_threads = omp_get_num_threads();\n            chunk_sum.assign(num_threads, 0LL);\n            carry_from_right.assign(num_threads, 0LL);\n        }\n\n        const int T = num_threads;\n\n        // Static block partitioning (contiguous).\n        const int base = n / T;\n        const int rem  = n % T;\n        const int start = tid * base + (tid < rem ? tid : rem);\n        const int len   = base + (tid < rem ? 1 : 0);\n        const int end   = start + len; // exclusive\n\n        long long local = 0;\n\n        // Reverse prefix within each chunk: scan from right to left.\n        for (int i = end - 1; i >= start; --i) {\n            local += x[i];\n            output[i] = static_cast<int>(local);\n        }\n\n        // Safe: each thread writes its own index.\n        chunk_sum[tid] = local;\n\n        #pragma omp barrier\n\n        // Compute carry for this chunk from all chunks to its right.\n        long long carry = 0;\n        for (int t = tid + 1; t < T; ++t) {\n            carry += chunk_sum[t];\n        }\n        carry_from_right[tid] = carry;\n\n        #pragma omp barrier\n\n        // Add carry to all elements in this chunk.\n        for (int i = start; i < end; ++i) {\n            output[i] = static_cast<int>(output[i] + carry_from_right[tid]);\n        }\n    }\n}",
+  "final_verdict": "NOT_ROBUST",
+  "robust": false
+}

@@ -1,0 +1,50 @@
+{
+  "ts": "2026-07-24T07:09:00.185571+00:00",
+  "model": "gpt-5.2",
+  "api_response": {
+    "id": "chatcmpl-E54JhmaTWJMH5Z16u6z6NjnQlOynZ",
+    "served_model": "gpt-5.2-2025-12-11",
+    "created": 1784876941,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 113,
+      "prompt_tokens": 178,
+      "total_tokens": 291,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 7,
+        "engine_ttft_ms": 52,
+        "engine_ttlt_ms": 795,
+        "pre_inference_ms": 103,
+        "service_tbt_ms": 7,
+        "service_ttft_ms": 611,
+        "service_ttlt_ms": 1350,
+        "total_duration_ms": 1262,
+        "user_visible_ttft_ms": 508
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the average of the vector x.\n   Use OpenMP to compute in parallel.\n   Examples:\n\t\t\n\t input: [1, 8, 4, 5, 1]\n   output: 3.8\n\n   input: [2, 2, 2, 3]\n   output: 2.25\n*/\ndouble average(std::vector<double> const& x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <omp.h>\n\ndouble average(std::vector<double> const& x) {\n    const std::size_t n = x.size();\n    if (n == 0) return 0.0;\n\n    double sum = 0.0;\n\n    #pragma omp parallel for reduction(+:sum)\n    for (std::size_t i = 0; i < n; ++i) {\n        sum += x[i];\n    }\n\n    return sum / static_cast<double>(n);\n}\n```",
+  "extracted_code": "#include <vector>\n#include <omp.h>\n\ndouble average(std::vector<double> const& x) {\n    const std::size_t n = x.size();\n    if (n == 0) return 0.0;\n\n    double sum = 0.0;\n\n    #pragma omp parallel for reduction(+:sum)\n    for (std::size_t i = 0; i < n; ++i) {\n        sum += x[i];\n    }\n\n    return sum / static_cast<double>(n);\n}"
+}

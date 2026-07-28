@@ -1,0 +1,39 @@
+{
+  "ts": "2026-07-24T08:20:17.120277+00:00",
+  "model": "qwen3-small",
+  "api_response": {
+    "id": "chatcmpl-06b7f59c-7183-9bf7-b941-4d3115d35155",
+    "served_model": "Qwen/Qwen3.6-27B",
+    "created": 1784881213,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1373+g387189c42-bd701272",
+    "usage": {
+      "completion_tokens": 339,
+      "prompt_tokens": 617,
+      "total_tokens": 956,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "stop",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <omp.h>\n#include <vector>\n#include <algorithm>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) return 0;\n    \n    int max_deg = 0;\n    \n    #pragma omp parallel\n    {\n        int local_max = 0;\n        \n        #pragma omp for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            int degree = 0;\n            for (size_t j = 0; j < N; ++j) {\n                degree += A[i * N + j];\n            }\n            if (degree > local_max) {\n                local_max = degree;\n            }\n        }\n        \n        #pragma omp critical\n        {\n            if (local_max > max_deg) {\n                max_deg = local_max;\n            }\n        }\n    }\n    \n    return max_deg;\n}\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: PARSE_ERR. output depends on thread scheduling (race/order-dependence). Return the corrected complete function in one ```cpp block."
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <vector>\n#include <algorithm>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) return 0;\n    \n    int max_deg = 0;\n    \n    #pragma omp parallel\n    {\n        int local_max = 0;\n        \n        #pragma omp for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            int degree = 0;\n            for (size_t j = 0; j < N; ++j) {\n                degree += A[i * N + j];\n            }\n            if (degree > local_max) {\n                local_max = degree;\n            }\n        }\n        \n        #pragma omp critical\n        {\n            if (local_max > max_deg) {\n                max_deg = local_max;\n            }\n        }\n    }\n    \n    return max_deg;\n}\n```",
+  "extracted_code": "#include <omp.h>\n#include <vector>\n#include <algorithm>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) return 0;\n    \n    int max_deg = 0;\n    \n    #pragma omp parallel\n    {\n        int local_max = 0;\n        \n        #pragma omp for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            int degree = 0;\n            for (size_t j = 0; j < N; ++j) {\n                degree += A[i * N + j];\n            }\n            if (degree > local_max) {\n                local_max = degree;\n            }\n        }\n        \n        #pragma omp critical\n        {\n            if (local_max > max_deg) {\n                max_deg = local_max;\n            }\n        }\n    }\n    \n    return max_deg;\n}"
+}

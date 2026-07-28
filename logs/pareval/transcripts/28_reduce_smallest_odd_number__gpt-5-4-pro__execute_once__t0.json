@@ -1,0 +1,33 @@
+{
+  "ts": "2026-07-24T07:55:04.252986+00:00",
+  "task": "28_reduce_smallest_odd_number",
+  "type": "reduce",
+  "model": "gpt-5.4-pro",
+  "condition": "execute_once",
+  "trial": 0,
+  "steps": [
+    {
+      "round": 0,
+      "verdict": "ROBUST_CORRECT",
+      "diag": ""
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the value of the smallest odd number in the vector x.\n   Use OpenMP to compute in parallel.\n   Examples:\n\n   input: [7, 9, 5, 2, 8, 16, 4, 1]\n   output: 1\n\n   input: [8, 36, 7, 2, 11]\n   output: 7\n*/\nint smallestOdd(std::vector<int> const& x) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <limits>\n#include <stdexcept>\n#include <omp.h>\n\nint smallestOdd(std::vector<int> const& x) {\n    int result = std::numeric_limits<int>::max();\n    int found_any = 0;\n    const long long n = static_cast<long long>(x.size());\n\n    #pragma omp parallel for default(none) shared(x, n) reduction(min:result) reduction(|:found_any)\n    for (long long i = 0; i < n; ++i) {\n        const int v = x[static_cast<std::size_t>(i)];\n        if ((v % 2) != 0) {\n            if (v < result) {\n                result = v;\n            }\n            found_any = 1;\n        }\n    }\n\n    if (found_any == 0) {\n        throw std::invalid_argument(\"smallestOdd: input contains no odd numbers\");\n    }\n\n    return result;\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <limits>\n#include <stdexcept>\n#include <omp.h>\n\nint smallestOdd(std::vector<int> const& x) {\n    int result = std::numeric_limits<int>::max();\n    int found_any = 0;\n    const long long n = static_cast<long long>(x.size());\n\n    #pragma omp parallel for default(none) shared(x, n) reduction(min:result) reduction(|:found_any)\n    for (long long i = 0; i < n; ++i) {\n        const int v = x[static_cast<std::size_t>(i)];\n        if ((v % 2) != 0) {\n            if (v < result) {\n                result = v;\n            }\n            found_any = 1;\n        }\n    }\n\n    if (found_any == 0) {\n        throw std::invalid_argument(\"smallestOdd: input contains no odd numbers\");\n    }\n\n    return result;\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

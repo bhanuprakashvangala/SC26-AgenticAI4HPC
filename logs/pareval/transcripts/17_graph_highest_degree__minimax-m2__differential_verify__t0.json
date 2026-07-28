@@ -1,0 +1,33 @@
+{
+  "ts": "2026-07-28T00:16:38.702467+00:00",
+  "task": "17_graph_highest_degree",
+  "type": "graph",
+  "model": "minimax-m2",
+  "condition": "differential_verify",
+  "trial": 0,
+  "steps": [
+    {
+      "round": 0,
+      "verdict": "ROBUST_CORRECT",
+      "diag": ""
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <omp.h>\n#include <vector>\n#include <cstddef>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int maxDeg = 0;\n\n    // Parallelize over all vertices, each thread computes a row sum\n    // and updates the global maximum using a reduction.\n    #pragma omp parallel for reduction(max: maxDeg)\n    for (size_t i = 0; i < N; ++i) {\n        int deg = 0;\n        for (size_t j = 0; j < N; ++j) {\n            deg += A[i * N + j];   // adjacency matrix entry (i, j)\n        }\n        // For an undirected graph, row sum equals column sum.\n        if (deg > maxDeg) maxDeg = deg;\n    }\n\n    return maxDeg;\n}\n```"
+    }
+  ],
+  "final_code": "#include <omp.h>\n#include <vector>\n#include <cstddef>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int maxDeg = 0;\n\n    // Parallelize over all vertices, each thread computes a row sum\n    // and updates the global maximum using a reduction.\n    #pragma omp parallel for reduction(max: maxDeg)\n    for (size_t i = 0; i < N; ++i) {\n        int deg = 0;\n        for (size_t j = 0; j < N; ++j) {\n            deg += A[i * N + j];   // adjacency matrix entry (i, j)\n        }\n        // For an undirected graph, row sum equals column sum.\n        if (deg > maxDeg) maxDeg = deg;\n    }\n\n    return maxDeg;\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

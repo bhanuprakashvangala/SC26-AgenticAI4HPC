@@ -1,0 +1,43 @@
+{
+  "ts": "2026-07-12T15:42:51.038518+00:00",
+  "model": "gpt-5.4-pro",
+  "api_response": {
+    "id": "resp_09d0c92ba7b41203006a53b554414c819493bee4f84f7edb79",
+    "served_model": "gpt-5.4-pro",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 281,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 1064,
+      "output_tokens_details": {
+        "reasoning_tokens": 796
+      },
+      "total_tokens": 1345
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n```cpp\n#include <omp.h>\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: CRASH. generated-code.hpp:9:1: error: stray \u2018`\u2019 in program. Return the corrected complete function in one ```cpp block."
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <cstddef>\n#include <limits>\n#include <vector>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    // Guard against invalid input size without risking overflow in N * N.\n    if (A.size() / N < N) {\n        return 0;\n    }\n\n    std::size_t max_deg = 0;\n\n    #pragma omp parallel for reduction(max:max_deg) schedule(static)\n    for (std::size_t i = 0; i < N; ++i) {\n        std::size_t degree = 0;\n        const std::size_t row_start = i * N;\n\n        for (std::size_t j = 0; j < N; ++j) {\n            if (A[row_start + j] != 0) {\n                ++degree;\n            }\n        }\n\n        if (degree > max_deg) {\n            max_deg = degree;\n        }\n    }\n\n    if (max_deg > static_cast<std::size_t>(std::numeric_limits<int>::max())) {\n        return std::numeric_limits<int>::max();\n    }\n\n    return static_cast<int>(max_deg);\n}\n```",
+  "extracted_code": "#include <omp.h>\n#include <cstddef>\n#include <limits>\n#include <vector>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    // Guard against invalid input size without risking overflow in N * N.\n    if (A.size() / N < N) {\n        return 0;\n    }\n\n    std::size_t max_deg = 0;\n\n    #pragma omp parallel for reduction(max:max_deg) schedule(static)\n    for (std::size_t i = 0; i < N; ++i) {\n        std::size_t degree = 0;\n        const std::size_t row_start = i * N;\n\n        for (std::size_t j = 0; j < N; ++j) {\n            if (A[row_start + j] != 0) {\n                ++degree;\n            }\n        }\n\n        if (degree > max_deg) {\n            max_deg = degree;\n        }\n    }\n\n    if (max_deg > static_cast<std::size_t>(std::numeric_limits<int>::max())) {\n        return std::numeric_limits<int>::max();\n    }\n\n    return static_cast<int>(max_deg);\n}"
+}

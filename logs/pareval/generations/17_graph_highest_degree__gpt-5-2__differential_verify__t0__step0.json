@@ -1,0 +1,50 @@
+{
+  "ts": "2026-07-12T14:22:22.320548+00:00",
+  "model": "gpt-5.2",
+  "api_response": {
+    "id": "chatcmpl-E0pMMTcWWtO9oUQoP7HCi1i7mHW8E",
+    "served_model": "gpt-5.2-2025-12-11",
+    "created": 1783866134,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 201,
+      "prompt_tokens": 223,
+      "total_tokens": 424,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 9,
+        "engine_ttft_ms": 65,
+        "engine_ttlt_ms": 1882,
+        "pre_inference_ms": 74,
+        "service_tbt_ms": 9,
+        "service_ttft_ms": 580,
+        "service_ttlt_ms": 2393,
+        "total_duration_ms": 2348,
+        "user_visible_ttft_ms": 506
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    // Assumes A is an NxN adjacency matrix in row-major order.\n    // Degree of node i is sum_j A[i*N + j] (for 0/1 adjacency).\n    int globalMax = 0;\n\n    #pragma omp parallel for reduction(max:globalMax)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int deg = 0;\n        const size_t rowBase = static_cast<size_t>(i) * N;\n        for (size_t j = 0; j < N; ++j) {\n            deg += A[rowBase + j];\n        }\n        if (deg > globalMax) globalMax = deg;\n    }\n\n    return globalMax;\n}\n```",
+  "extracted_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    // Assumes A is an NxN adjacency matrix in row-major order.\n    // Degree of node i is sum_j A[i*N + j] (for 0/1 adjacency).\n    int globalMax = 0;\n\n    #pragma omp parallel for reduction(max:globalMax)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int deg = 0;\n        const size_t rowBase = static_cast<size_t>(i) * N;\n        for (size_t j = 0; j < N; ++j) {\n            deg += A[rowBase + j];\n        }\n        if (deg > globalMax) globalMax = deg;\n    }\n\n    return globalMax;\n}"
+}

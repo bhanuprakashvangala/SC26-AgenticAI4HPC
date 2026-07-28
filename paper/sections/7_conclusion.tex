@@ -1,0 +1,26 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+Agentic AI will accelerate HPC software engineering only to the extent that we can
+trust what it writes once that code runs in parallel. We defined
+\emph{configuration-robust correctness}---agreement with a trusted serial reference
+under every thread count and repeated run---and built an agent that writes OpenMP
+code and can invoke a distribution-aware differential verifier that establishes it.
+On the standard ParEval benchmark with four state-of-the-art models, correctness
+turned out not to be the binding constraint: single-shot generation is already
+robustly correct \Lzerorate{} of the time, a repair loop raises this to
+\Lonerate{}, and the differential verifier leaves it unchanged at \Ltworate{}
+because these models seldom write the silent-race bug it targets---though an
+open-weights panel shows a smaller model shipping a genuine race the verifier
+catches and repairs, so its value returns as capability falls. The consequential
+finding is that robust correctness is \emph{necessary but not sufficient}, and
+gameable by construction: a serial program scores perfectly, and among the
+\Ntimed{} programs the verifier accepted, measured self-speedup spans $0.33\times$
+to $7.9\times$---one running slower in parallel than serially. Once frontier models
+make race-freedom cheap on idiomatic tasks, ``correct but not parallel'' is where
+agent-generated HPC code fails, and an output-only acceptance test cannot see it.
+The lesson for tool-builders is to measure both axes---correctness \emph{and}
+scaling---and to treat cross-checking against a dedicated race detector as the way
+to trust the first. We release the metric, the harness, prompts, and per-generation
+and per-repair transcripts so that parallelism-aware evaluation of agent-generated
+HPC code can be studied openly.

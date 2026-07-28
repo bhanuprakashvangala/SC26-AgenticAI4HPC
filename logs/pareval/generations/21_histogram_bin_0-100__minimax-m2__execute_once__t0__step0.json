@@ -1,0 +1,31 @@
+{
+  "ts": "2026-07-27T23:31:39.742049+00:00",
+  "model": "minimax-m2",
+  "api_response": {
+    "id": "chatcmpl-3bfdfe6c-10a4-9c80-8b6c-b49e3323c735",
+    "served_model": "MiniMaxAI/MiniMax-M2.7",
+    "created": 1785194966,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1442+gdd72658e7-tp4-ep-3d05fb0e",
+    "usage": {
+      "completion_tokens": 6000,
+      "prompt_tokens": 256,
+      "total_tokens": 6256,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "length",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Vector x contains values between 0 and 100, inclusive. Count the number of\n   values in [0,10), [10, 20), [20, 30), ... and store the counts in `bins`.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [7, 32, 95, 12, 39, 32, 11, 71, 70, 66]\n   output: [1, 2, 0, 3, 0, 0, 1, 2, 0, 1]\n*/\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {"
+    }
+  ],
+  "raw_response": "",
+  "extracted_code": ""
+}

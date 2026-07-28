@@ -1,0 +1,23 @@
+# Final Bedrock panel — confirmed working on-demand in us-east-1 (10 vendors, 17 models).
+# Anthropic/Cohere/AI21 can be added once enabled in Bedrock Model Access.
+models:
+  # --- large general-purpose ---
+  - {provider: bedrock, model: "meta.llama3-70b-instruct-v1:0",         label: llama3-70b,      vendor: Meta,     tier: large}
+  - {provider: bedrock, model: "mistral.mistral-large-2402-v1:0",       label: mistral-large,   vendor: Mistral,  tier: large}
+  - {provider: bedrock, model: "mistral.mistral-large-3-675b-instruct", label: mistral-large-3, vendor: Mistral,  tier: large}
+  - {provider: bedrock, model: "amazon.nova-pro-v1:0",                  label: nova-pro,        vendor: Amazon,   tier: large}
+  - {provider: bedrock, model: "deepseek.v3.2",                         label: deepseek-v3.2,   vendor: DeepSeek, tier: large}
+  - {provider: bedrock, model: "qwen.qwen3-32b-v1:0",                   label: qwen3-32b,       vendor: Alibaba,  tier: large}
+  - {provider: bedrock, model: "qwen.qwen3-next-80b-a3b",               label: qwen3-next-80b,  vendor: Alibaba,  tier: large}
+  - {provider: bedrock, model: "openai.gpt-oss-120b-1:0",               label: gpt-oss-120b,    vendor: OpenAI,   tier: large}
+  - {provider: bedrock, model: "google.gemma-3-27b-it",                 label: gemma-3-27b,     vendor: Google,   tier: large}
+  - {provider: bedrock, model: "zai.glm-4.7",                           label: glm-4.7,         vendor: Zhipu,    tier: large}
+  - {provider: bedrock, model: "nvidia.nemotron-super-3-120b",          label: nemotron-120b,   vendor: NVIDIA,   tier: large}
+  # --- code-specialized ---
+  - {provider: bedrock, model: "qwen.qwen3-coder-30b-a3b-v1:0",         label: qwen3-coder-30b, vendor: Alibaba,  tier: code}
+  - {provider: bedrock, model: "mistral.devstral-2-123b",              label: devstral-2,      vendor: Mistral,  tier: code}
+  # --- small / cost-tier ---
+  - {provider: bedrock, model: "meta.llama3-8b-instruct-v1:0",          label: llama3-8b,       vendor: Meta,     tier: small}
+  - {provider: bedrock, model: "amazon.nova-lite-v1:0",                 label: nova-lite,       vendor: Amazon,   tier: small}
+  - {provider: bedrock, model: "amazon.nova-micro-v1:0",               label: nova-micro,      vendor: Amazon,   tier: small}
+  - {provider: bedrock, model: "openai.gpt-oss-20b-1:0",                label: gpt-oss-20b,     vendor: OpenAI,   tier: small}

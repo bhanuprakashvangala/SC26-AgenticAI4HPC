@@ -1,0 +1,33 @@
+{
+  "ts": "2026-07-24T07:55:04.240241+00:00",
+  "task": "03_dense_la_axpy",
+  "type": "dense_la",
+  "model": "gpt-5.4-pro",
+  "condition": "differential_verify",
+  "trial": 0,
+  "steps": [
+    {
+      "round": 0,
+      "verdict": "ROBUST_CORRECT",
+      "diag": ""
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute z = alpha*x+y where x and y are vectors. Store the result in z.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: x=[1, -5, 2, 9] y=[0, 4, 1, -1] alpha=2\n   output: z=[2, -6, 5, 17]\n*/\nvoid axpy(double alpha, std::vector<double> const& x, std::vector<double> const& y, std::vector<double> &z) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <omp.h>\n#include <vector>\n#include <stdexcept>\n#include <cstddef>\n#include <limits>\n\nvoid axpy(double alpha, std::vector<double> const& x, std::vector<double> const& y, std::vector<double> &z) {\n    if (x.size() != y.size()) {\n        throw std::invalid_argument(\"axpy: x and y must have the same size\");\n    }\n\n    if (x.size() > static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max())) {\n        throw std::overflow_error(\"axpy: vector size exceeds supported OpenMP loop index range\");\n    }\n\n    const std::size_t n = x.size();\n    if (z.size() != n) {\n        z.resize(n);\n    }\n\n    const std::ptrdiff_t n_omp = static_cast<std::ptrdiff_t>(n);\n\n    #pragma omp parallel for default(none) shared(x, y, z, alpha, n_omp) schedule(static)\n    for (std::ptrdiff_t i = 0; i < n_omp; ++i) {\n        const std::size_t idx = static_cast<std::size_t>(i);\n        z[idx] = alpha * x[idx] + y[idx];\n    }\n}\n```"
+    }
+  ],
+  "final_code": "#include <omp.h>\n#include <vector>\n#include <stdexcept>\n#include <cstddef>\n#include <limits>\n\nvoid axpy(double alpha, std::vector<double> const& x, std::vector<double> const& y, std::vector<double> &z) {\n    if (x.size() != y.size()) {\n        throw std::invalid_argument(\"axpy: x and y must have the same size\");\n    }\n\n    if (x.size() > static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max())) {\n        throw std::overflow_error(\"axpy: vector size exceeds supported OpenMP loop index range\");\n    }\n\n    const std::size_t n = x.size();\n    if (z.size() != n) {\n        z.resize(n);\n    }\n\n    const std::ptrdiff_t n_omp = static_cast<std::ptrdiff_t>(n);\n\n    #pragma omp parallel for default(none) shared(x, y, z, alpha, n_omp) schedule(static)\n    for (std::ptrdiff_t i = 0; i < n_omp; ++i) {\n        const std::size_t idx = static_cast<std::size_t>(i);\n        z[idx] = alpha * x[idx] + y[idx];\n    }\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

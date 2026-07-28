@@ -1,0 +1,31 @@
+{
+  "ts": "2026-07-25T23:08:42.011197+00:00",
+  "model": "gpt-oss",
+  "api_response": {
+    "id": "chatcmpl-aaae1d25-91a8-95df-a2cd-d5086212a4e1",
+    "served_model": "openai/gpt-oss-120b",
+    "created": 1785020886,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1095+g94c0ef300-tp2-ep-c49bb217",
+    "usage": {
+      "completion_tokens": 892,
+      "prompt_tokens": 321,
+      "total_tokens": 1213,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "stop",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\nstruct Point {\n    double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant.\n   The vector `points` contains a list of `Point` objects.\n   Store the counts in `bins` (order: I, II, III, IV).\n   Points that lie on an axis are ignored.\n   The implementation is safe for any number of OpenMP threads. */\nvoid countQuadrants(const std::vector<Point>& points,\n                    std::array<std::size_t, 4>& bins)\n{\n    // initialise the result array\n    bins.fill(0);\n\n    #pragma omp parallel\n    {\n        // private partial counts for each thread\n        std::array<std::size_t, 4> local_bins = {0, 0, 0, 0};\n\n        #pragma omp for nowait schedule(static)\n        for (std::size_t i = 0; i < points.size(); ++i) {\n            const Point& p = points[i];\n\n            if (p.x > 0.0 && p.y > 0.0) {\n                ++local_bins[0];               // Quadrant I\n            } else if (p.x < 0.0 && p.y > 0.0) {\n                ++local_bins[1];               // Quadrant II\n            } else if (p.x < 0.0 && p.y < 0.0) {\n                ++local_bins[2];               // Quadrant III\n            } else if (p.x > 0.0 && p.y < 0.0) {\n                ++local_bins[3];               // Quadrant IV\n            }\n            // points on the axes are not counted\n        }\n\n        // combine the thread\u2011local results into the shared array\n        #pragma omp critical\n        {\n            for (int q = 0; q < 4; ++q) {\n                bins[q] += local_bins[q];\n            }\n        }\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\nstruct Point {\n    double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant.\n   The vector `points` contains a list of `Point` objects.\n   Store the counts in `bins` (order: I, II, III, IV).\n   Points that lie on an axis are ignored.\n   The implementation is safe for any number of OpenMP threads. */\nvoid countQuadrants(const std::vector<Point>& points,\n                    std::array<std::size_t, 4>& bins)\n{\n    // initialise the result array\n    bins.fill(0);\n\n    #pragma omp parallel\n    {\n        // private partial counts for each thread\n        std::array<std::size_t, 4> local_bins = {0, 0, 0, 0};\n\n        #pragma omp for nowait schedule(static)\n        for (std::size_t i = 0; i < points.size(); ++i) {\n            const Point& p = points[i];\n\n            if (p.x > 0.0 && p.y > 0.0) {\n                ++local_bins[0];               // Quadrant I\n            } else if (p.x < 0.0 && p.y > 0.0) {\n                ++local_bins[1];               // Quadrant II\n            } else if (p.x < 0.0 && p.y < 0.0) {\n                ++local_bins[2];               // Quadrant III\n            } else if (p.x > 0.0 && p.y < 0.0) {\n                ++local_bins[3];               // Quadrant IV\n            }\n            // points on the axes are not counted\n        }\n\n        // combine the thread\u2011local results into the shared array\n        #pragma omp critical\n        {\n            for (int q = 0; q < 4; ++q) {\n                bins[q] += local_bins[q];\n            }\n        }\n    }\n}"
+}

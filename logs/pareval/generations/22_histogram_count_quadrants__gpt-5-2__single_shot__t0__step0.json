@@ -1,0 +1,50 @@
+{
+  "ts": "2026-07-12T13:46:38.771399+00:00",
+  "model": "gpt-5.2",
+  "api_response": {
+    "id": "chatcmpl-E0onmIW5vPb499bV6iQV4pIBv8rTN",
+    "served_model": "gpt-5.2-2025-12-11",
+    "created": 1783863990,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 383,
+      "prompt_tokens": 257,
+      "total_tokens": 640,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 6,
+        "engine_ttft_ms": 57,
+        "engine_ttlt_ms": 2489,
+        "pre_inference_ms": 96,
+        "service_tbt_ms": 6,
+        "service_ttft_ms": 596,
+        "service_ttlt_ms": 3024,
+        "total_duration_ms": 2936,
+        "user_visible_ttft_ms": 500
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0, 0, 0, 0};\n\n    const int max_threads = omp_get_max_threads();\n    std::vector<std::array<size_t, 4>> local(static_cast<size_t>(max_threads), {0, 0, 0, 0});\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        auto &lb = local[static_cast<size_t>(tid)];\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < points.size(); ++i) {\n            const double x = points[i].x;\n            const double y = points[i].y;\n\n            // Bin mapping:\n            // 0: x>=0, y>=0\n            // 1: x<0,  y>=0\n            // 2: x<0,  y<0\n            // 3: x>=0, y<0\n            if (x >= 0.0) {\n                if (y >= 0.0) ++lb[0];\n                else          ++lb[3];\n            } else {\n                if (y >= 0.0) ++lb[1];\n                else          ++lb[2];\n            }\n        }\n    }\n\n    for (const auto &lb : local) {\n        bins[0] += lb[0];\n        bins[1] += lb[1];\n        bins[2] += lb[2];\n        bins[3] += lb[3];\n    }\n}\n```",
+  "extracted_code": "#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0, 0, 0, 0};\n\n    const int max_threads = omp_get_max_threads();\n    std::vector<std::array<size_t, 4>> local(static_cast<size_t>(max_threads), {0, 0, 0, 0});\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        auto &lb = local[static_cast<size_t>(tid)];\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < points.size(); ++i) {\n            const double x = points[i].x;\n            const double y = points[i].y;\n\n            // Bin mapping:\n            // 0: x>=0, y>=0\n            // 1: x<0,  y>=0\n            // 2: x<0,  y<0\n            // 3: x>=0, y<0\n            if (x >= 0.0) {\n                if (y >= 0.0) ++lb[0];\n                else          ++lb[3];\n            } else {\n                if (y >= 0.0) ++lb[1];\n                else          ++lb[2];\n            }\n        }\n    }\n\n    for (const auto &lb : local) {\n        bins[0] += lb[0];\n        bins[1] += lb[1];\n        bins[2] += lb[2];\n        bins[3] += lb[3];\n    }\n}"
+}

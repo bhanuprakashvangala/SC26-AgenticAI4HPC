@@ -1,0 +1,35 @@
+{
+  "ts": "2026-07-12T13:50:11.675440+00:00",
+  "model": "gpt-5.4-pro",
+  "api_response": {
+    "id": "resp_057fe789e5c5790e006a539b5c3208819693d584c0c4dbb136",
+    "served_model": "gpt-5.4-pro",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 257,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 2000,
+      "output_tokens_details": {
+        "reasoning_tokens": 1891
+      },
+      "total_tokens": 2257
+    },
+    "finish_reason": "incomplete"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <array>\n#include <vector>\n#include <stddef.h>\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    size_t q1 = 0; // x > 0, y > 0\n    size_t q2 = 0; // x < 0, y > 0\n    size_t q3 = 0; // x < 0, y <",
+  "extracted_code": "```cpp\n#include <omp.h>\n#include <array>\n#include <vector>\n#include <stddef.h>\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    size_t q1 = 0; // x > 0, y > 0\n    size_t q2 = 0; // x < 0, y > 0\n    size_t q3 = 0; // x < 0, y <"
+}

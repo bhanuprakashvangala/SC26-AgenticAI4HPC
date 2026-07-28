@@ -1,0 +1,32 @@
+{
+  "ts": "2026-07-10T09:11:20.457047+00:00",
+  "task": "38_search_find_the_first_even_number",
+  "type": "search",
+  "model": "gpt-5.2",
+  "condition": "differential_verify",
+  "trial": 0,
+  "steps": [
+    {
+      "round": 0,
+      "verdict": "ROBUST_CORRECT",
+      "diag": ""
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the index of the first even number in the vector x.\n   Use OpenMP to parallelize the search.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\nsize_t findFirstEven(std::vector<int> const& x) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nsize_t findFirstEven(std::vector<int> const& x) {\n    const size_t n = x.size();\n    if (n == 0) return n;\n\n    size_t best = n; // n means \"not found\"\n\n    #pragma omp parallel\n    {\n        size_t local_best = n;\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < n; ++i) {\n            // Optional early skip: if we've already found an earlier even in this thread\n            if (i >= local_best) continue;\n            if ((x[i] & 1) == 0) local_best = i;\n        }\n\n        #pragma omp critical\n        {\n            if (local_best < best) best = local_best;\n        }\n    }\n\n    return best;\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nsize_t findFirstEven(std::vector<int> const& x) {\n    const size_t n = x.size();\n    if (n == 0) return n;\n\n    size_t best = n; // n means \"not found\"\n\n    #pragma omp parallel\n    {\n        size_t local_best = n;\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < n; ++i) {\n            // Optional early skip: if we've already found an earlier even in this thread\n            if (i >= local_best) continue;\n            if ((x[i] & 1) == 0) local_best = i;\n        }\n\n        #pragma omp critical\n        {\n            if (local_best < best) best = local_best;\n        }\n    }\n\n    return best;\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "robust": true
+}

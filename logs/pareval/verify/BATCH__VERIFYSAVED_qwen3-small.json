@@ -1,0 +1,33 @@
+{
+  "ts": "2026-07-25T22:38:07.770401+00:00",
+  "threads": [
+    1,
+    2,
+    4,
+    8
+  ],
+  "reps": 2,
+  "n_cells": 18,
+  "n_chunks": 2,
+  "cell_ids": [
+    "17_graph_highest_degree__qwen3-small__differential_verify__t0",
+    "17_graph_highest_degree__qwen3-small__execute_once__t0",
+    "17_graph_highest_degree__qwen3-small__single_shot__t0",
+    "21_histogram_bin_0-100__qwen3-small__differential_verify__t0",
+    "21_histogram_bin_0-100__qwen3-small__execute_once__t0",
+    "21_histogram_bin_0-100__qwen3-small__single_shot__t0",
+    "22_histogram_count_quadrants__qwen3-small__differential_verify__t0",
+    "22_histogram_count_quadrants__qwen3-small__execute_once__t0",
+    "22_histogram_count_quadrants__qwen3-small__single_shot__t0",
+    "26_reduce_product_of_inverses__qwen3-small__differential_verify__t0",
+    "26_reduce_product_of_inverses__qwen3-small__execute_once__t0",
+    "26_reduce_product_of_inverses__qwen3-small__single_shot__t0",
+    "29_reduce_sum_of_min_of_pairs__qwen3-small__differential_verify__t0",
+    "29_reduce_sum_of_min_of_pairs__qwen3-small__execute_once__t0",
+    "29_reduce_sum_of_min_of_pairs__qwen3-small__single_shot__t0",
+    "33_scan_reverse_prefix_sum__qwen3-small__differential_verify__t0",
+    "33_scan_reverse_prefix_sum__qwen3-small__execute_once__t0",
+    "33_scan_reverse_prefix_sum__qwen3-small__single_shot__t0"
+  ],
+  "raw": "CELL 17_graph_highest_degree__qwen3-small__differential_verify__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 17_graph_highest_degree__qwen3-small__differential_verify__t0 VERDICT=ROBUST_CORRECT\nCELL 17_graph_highest_degree__qwen3-small__execute_once__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 17_graph_highest_degree__qwen3-small__execute_once__t0 VERDICT=ROBUST_CORRECT\nCELL 17_graph_highest_degree__qwen3-small__single_shot__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 17_graph_highest_degree__qwen3-small__single_shot__t0 VERDICT=ROBUST_CORRECT\nCELL 21_histogram_bin_0-100__qwen3-small__differential_verify__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 21_histogram_bin_0-100__qwen3-small__differential_verify__t0 VERDICT=ROBUST_CORRECT\nCELL 21_histogram_bin_0-100__qwen3-small__execute_once__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 21_histogram_bin_0-100__qwen3-small__execute_once__t0 VERDICT=ROBUST_CORRECT\nCELL 21_histogram_bin_0-100__qwen3-small__single_shot__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 21_histogram_bin_0-100__qwen3-small__single_shot__t0 VERDICT=ROBUST_CORRECT\nCELL 22_histogram_count_quadrants__qwen3-small__differential_verify__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 22_histogram_count_quadrants__qwen3-small__differential_verify__t0 VERDICT=ROBUST_CORRECT\nCELL 22_histogram_count_quadrants__qwen3-small__execute_once__t0 SWEEP t1=2/2 t2=0/2 t4=0/2 t8=0/2\nCELL 22_histogram_count_quadrants__qwen3-small__execute_once__t0 VERDICT=NOT_ROBUST DIAG=validation FAIL on 6 of 8 thread/rep runs (race/order-dependence)\nCELL 22_histogram_count_quadrants__qwen3-small__single_shot__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 22_histogram_count_quadrants__qwen3-small__single_shot__t0 VERDICT=ROBUST_CORRECT\nCELL 26_reduce_product_of_inverses__qwen3-small__differential_verify__t0 SWEEP t1=0/2 t2=0/2 t4=0/2 t8=0/2\nCELL 26_reduce_product_of_inverses__qwen3-small__differential_verify__t0 VERDICT=NOT_ROBUST DIAG=validation FAIL on 8 of 8 thread/rep runs (race/order-dependence)\nCELL 26_reduce_product_of_inverses__qwen3-small__execute_once__t0 SWEEP t1=0/2 t2=0/2 t4=0/2 t8=0/2\nCELL 26_reduce_product_of_inverses__qwen3-small__execute_once__t0 VERDICT=NOT_ROBUST DIAG=validation FAIL on 8 of 8 thread/rep runs (race/order-dependence)\nCELL 26_reduce_product_of_inverses__qwen3-small__single_shot__t0 SWEEP t1=0/2 t2=0/2 t4=0/2 t8=0/2\nCELL 26_reduce_product_of_inverses__qwen3-small__single_shot__t0 VERDICT=NOT_ROBUST DIAG=validation FAIL on 8 of 8 thread/rep runs (race/order-dependence)\nALLDONE\n\n\nCELL 29_reduce_sum_of_min_of_pairs__qwen3-small__differential_verify__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 29_reduce_sum_of_min_of_pairs__qwen3-small__differential_verify__t0 VERDICT=ROBUST_CORRECT\nCELL 29_reduce_sum_of_min_of_pairs__qwen3-small__execute_once__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 29_reduce_sum_of_min_of_pairs__qwen3-small__execute_once__t0 VERDICT=ROBUST_CORRECT\nCELL 29_reduce_sum_of_min_of_pairs__qwen3-small__single_shot__t0 SWEEP t1=2/2 t2=2/2 t4=2/2 t8=2/2\nCELL 29_reduce_sum_of_min_of_pairs__qwen3-small__single_shot__t0 VERDICT=ROBUST_CORRECT\nCELL 33_scan_reverse_prefix_sum__qwen3-small__differential_verify__t0 SWEEP t1=0/2 t2=0/2 t4=0/2 t8=0/2\nCELL 33_scan_reverse_prefix_sum__qwen3-small__differential_verify__t0 VERDICT=NOT_ROBUST DIAG=validation FAIL on 8 of 8 thread/rep runs (race/order-dependence)\nCELL 33_scan_reverse_prefix_sum__qwen3-small__execute_once__t0 SWEEP t1=0/2 t2=0/2 t4=0/2 t8=0/2\nCELL 33_scan_reverse_prefix_sum__qwen3-small__execute_once__t0 VERDICT=NOT_ROBUST DIAG=validation FAIL on 8 of 8 thread/rep runs (race/order-dependence)\nCELL 33_scan_reverse_prefix_sum__qwen3-small__single_shot__t0 SWEEP t1=0/2 t2=0/2 t4=0/2 t8=0/2\nCELL 33_scan_reverse_prefix_sum__qwen3-small__single_shot__t0 VERDICT=NOT_ROBUST DIAG=validation FAIL on 8 of 8 thread/rep runs (race/order-dependence)\nALLDONE\n\n"
+}

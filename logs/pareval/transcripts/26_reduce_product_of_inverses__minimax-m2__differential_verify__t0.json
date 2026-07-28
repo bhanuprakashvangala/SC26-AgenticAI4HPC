@@ -1,0 +1,59 @@
+{
+  "ts": "2026-07-28T00:16:38.689687+00:00",
+  "task": "26_reduce_product_of_inverses",
+  "type": "reduce",
+  "model": "minimax-m2",
+  "condition": "differential_verify",
+  "trial": 0,
+  "steps": [
+    {
+      "round": 0,
+      "verdict": "NOT_ROBUST",
+      "diag": "validation FAIL on 8 of 8 thread/rep runs (race/order-dependence)"
+    },
+    {
+      "round": 1,
+      "verdict": "CRASH",
+      "diag": "cpu.cc:40:18: error: 'productWithInverses' was not declared in this scope; did you mean 'correctProductWithInverses'?"
+    },
+    {
+      "round": 2,
+      "verdict": "CRASH",
+      "diag": "cpu.cc:40:18: error: 'productWithInverses' was not declared in this scope; did you mean 'correctProductWithInverses'?"
+    }
+  ],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the product of the vector x with every odd indexed element inverted.\n   i.e. x_0 * 1/x_1 * x_2 * 1/x_3 * x_4 ...\n   Use OpenMP to compute product in parallel.\n   Example:\n\n   input: [4, 2, 10, 4, 5]\n   output: 25\n*/\ndouble productWithInverses(std::vector<double> const& x) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <omp.h>\n#include <vector>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double prod = 1.0;\n    #pragma omp parallel for reduction(*:prod)\n    for (size_t i = 0; i < x.size(); ++i) {\n        double term = (i % 2 == 0) ? x[i] : 1.0 / x[i];\n        prod *= term;\n    }\n    return prod;\n}\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: NOT_ROBUST. validation FAIL on 8 of 8 thread/rep runs (race/order-dependence). Return the corrected complete function in one ```cpp block."
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: CRASH. cpu.cc:40:18: error: 'productWithInverses' was not declared in this scope; did you mean 'correctProductWithInverses'?. Return the corrected complete function in one ```cpp block."
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n\n```"
+    }
+  ],
+  "final_code": "",
+  "final_verdict": "CRASH",
+  "sweep": "",
+  "robust": false
+}

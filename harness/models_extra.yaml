@@ -1,0 +1,13 @@
+models:
+  - {provider: bedrock, model: "amazon.nova-lite-v1:0",                  label: nova-lite,        vendor: Amazon,   tier: small}
+  - {provider: bedrock, model: "openai.gpt-oss-120b-1:0",                label: gpt-oss-120b,     vendor: OpenAI,   tier: large}
+  - {provider: bedrock, model: "openai.gpt-oss-20b-1:0",                 label: gpt-oss-20b,      vendor: OpenAI,   tier: small}
+  - {provider: bedrock, model: "google.gemma-3-27b-it",                  label: gemma-3-27b,      vendor: Google,   tier: large}
+  - {provider: bedrock, model: "qwen.qwen3-32b-v1:0",                    label: qwen3-32b,        vendor: Alibaba,  tier: large}
+  - {provider: bedrock, model: "qwen.qwen3-next-80b-a3b",                label: qwen3-next-80b,   vendor: Alibaba,  tier: large}
+  - {provider: bedrock, model: "mistral.mistral-large-3-675b-instruct",  label: mistral-large-3,  vendor: Mistral,  tier: large}
+  - {provider: bedrock, model: "mistral.devstral-2-123b",               label: devstral-2,       vendor: Mistral,  tier: code}
+  - {provider: bedrock, model: "zai.glm-4.7",                            label: glm-4.7,          vendor: Zhipu,    tier: large}
+  - {provider: bedrock, model: "moonshot.kimi-k2-thinking",             label: kimi-k2,          vendor: Moonshot, tier: large}
+  - {provider: bedrock, model: "minimax.minimax-m2",                    label: minimax-m2,       vendor: MiniMax,  tier: large}
+  - {provider: bedrock, model: "nvidia.nemotron-super-3-120b",           label: nemotron-120b,    vendor: NVIDIA,   tier: large}

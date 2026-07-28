@@ -1,0 +1,50 @@
+{
+  "ts": "2026-07-24T07:22:00.446196+00:00",
+  "model": "gpt-5.2",
+  "api_response": {
+    "id": "chatcmpl-E54WHo3crXtx7kM2DXOOI87PPWVcL",
+    "served_model": "gpt-5.2-2025-12-11",
+    "created": 1784877721,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 95,
+      "prompt_tokens": 168,
+      "total_tokens": 263,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 11,
+        "engine_ttft_ms": 74,
+        "engine_ttlt_ms": 1133,
+        "pre_inference_ms": 110,
+        "service_tbt_ms": 11,
+        "service_ttft_ms": 263,
+        "service_ttlt_ms": 1315,
+        "total_duration_ms": 1213,
+        "user_visible_ttft_ms": 153
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Replace every element of x with the square of its value.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [5, 1, 2, -4, 8]\n   output: [25, 1, 4, 16, 64]\n*/\nvoid squareEach(std::vector<int> &x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <omp.h>\n\nvoid squareEach(std::vector<int> &x) {\n    const std::size_t n = x.size();\n\n    #pragma omp parallel for default(none) shared(x, n)\n    for (std::size_t i = 0; i < n; ++i) {\n        const int v = x[i];\n        x[i] = v * v;\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <omp.h>\n\nvoid squareEach(std::vector<int> &x) {\n    const std::size_t n = x.size();\n\n    #pragma omp parallel for default(none) shared(x, n)\n    for (std::size_t i = 0; i < n; ++i) {\n        const int v = x[i];\n        x[i] = v * v;\n    }\n}"
+}

@@ -1,0 +1,31 @@
+{
+  "ts": "2026-07-25T23:10:16.120422+00:00",
+  "model": "gpt-oss",
+  "api_response": {
+    "id": "chatcmpl-03a56cc8-fe25-9cf4-91f3-07ae8ef5d820",
+    "served_model": "openai/gpt-oss-120b",
+    "created": 1785021009,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1095+g94c0ef300-tp2-ep-c49bb217",
+    "usage": {
+      "completion_tokens": 542,
+      "prompt_tokens": 255,
+      "total_tokens": 797,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "stop",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the product of the vector x with every odd indexed element inverted.\n   i.e. x_0 * 1/x_1 * x_2 * 1/x_3 * x_4 ...\n   Use OpenMP to compute product in parallel.\n   Example:\n\n   input: [4, 2, 10, 4, 5]\n   output: 25\n*/\ndouble productWithInverses(std::vector<double> const& x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <omp.h>\n\n/* Return the product of the vector x with every odd indexed element inverted.\n   i.e. x_0 * 1/x_1 * x_2 * 1/x_3 * x_4 ...\n   The computation is performed in parallel using OpenMP and is correct for any\n   number of threads.\n*/\ndouble productWithInverses(const std::vector<double>& x) {\n    // Empty vector \u2192 neutral element of multiplication\n    if (x.empty()) return 1.0;\n\n    double prod = 1.0;                     // neutral element for multiplication\n    const std::size_t n = x.size();\n\n    // Parallel loop with a multiplication reduction.\n    // Each iteration contributes a factor that is either x[i] (even i)\n    // or 1.0/x[i] (odd i).\n    #pragma omp parallel for reduction(*:prod) schedule(static)\n    for (std::size_t i = 0; i < n; ++i) {\n        double factor = (i % 2 == 0) ? x[i] : 1.0 / x[i];\n        prod *= factor;\n    }\n\n    return prod;\n}\n```",
+  "extracted_code": "#include <vector>\n#include <omp.h>\n\n/* Return the product of the vector x with every odd indexed element inverted.\n   i.e. x_0 * 1/x_1 * x_2 * 1/x_3 * x_4 ...\n   The computation is performed in parallel using OpenMP and is correct for any\n   number of threads.\n*/\ndouble productWithInverses(const std::vector<double>& x) {\n    // Empty vector \u2192 neutral element of multiplication\n    if (x.empty()) return 1.0;\n\n    double prod = 1.0;                     // neutral element for multiplication\n    const std::size_t n = x.size();\n\n    // Parallel loop with a multiplication reduction.\n    // Each iteration contributes a factor that is either x[i] (even i)\n    // or 1.0/x[i] (odd i).\n    #pragma omp parallel for reduction(*:prod) schedule(static)\n    for (std::size_t i = 0; i < n; ++i) {\n        double factor = (i % 2 == 0) ? x[i] : 1.0 / x[i];\n        prod *= factor;\n    }\n\n    return prod;\n}"
+}

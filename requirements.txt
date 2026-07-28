@@ -1,0 +1,7 @@
+# Dependencies for the agentic ParEval study harness (Windows-ARM64 friendly).
+# Compilation/execution of the generated OpenMP code happens on a remote Linux
+# host with GCC+OpenMP; nothing here needs a C/C++ toolchain locally.
+openai>=1.40          # Azure OpenAI client (keyless, Entra ID bearer tokens)
+matplotlib>=3.8       # ablation figure in analyze_pareval.py
+numpy>=1.26           # pulled in by matplotlib; array helpers
+# Model access uses the Azure CLI (`az`); install it separately and run `az login`.

@@ -1,0 +1,31 @@
+{
+  "ts": "2026-07-25T23:10:26.672068+00:00",
+  "model": "gpt-oss",
+  "api_response": {
+    "id": "chatcmpl-8b6b2ef7-1059-91e5-98d5-aa6cdf4fe7dc",
+    "served_model": "openai/gpt-oss-120b",
+    "created": 1785021020,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1095+g94c0ef300-tp2-ep-c49bb217",
+    "usage": {
+      "completion_tokens": 487,
+      "prompt_tokens": 293,
+      "total_tokens": 780,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "stop",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the sum of the minimum value at each index of vectors x and y for all indices.\n   i.e. sum = min(x_0, y_0) + min(x_1, y_1) + min(x_2, y_2) + ...\n   Use OpenMP to sum in parallel.\n   Example:\n\n   input: x=[3, 4, 0, 2, 3], y=[2, 5, 3, 1, 7]\n   output: 10\n*/\ndouble sumOfMinimumElements(std::vector<double> const& x, std::vector<double> const& y) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <algorithm>\n#include <omp.h>\n\n/* Return the sum of the minimum value at each index of vectors x and y for all indices.\n   i.e. sum = min(x_0, y_0) + min(x_1, y_1) + min(x_2, y_2) + ...\n   The computation is performed in parallel with OpenMP and is correct for any\n   number of threads.\n*/\ndouble sumOfMinimumElements(const std::vector<double>& x,\n                            const std::vector<double>& y)\n{\n    // Use the shorter length if the vectors differ in size.\n    const std::size_t n = std::min(x.size(), y.size());\n\n    double sum = 0.0;\n\n    #pragma omp parallel for reduction(+:sum) schedule(static)\n    for (std::size_t i = 0; i < n; ++i) {\n        sum += std::min(x[i], y[i]);\n    }\n\n    return sum;\n}\n```",
+  "extracted_code": "#include <vector>\n#include <algorithm>\n#include <omp.h>\n\n/* Return the sum of the minimum value at each index of vectors x and y for all indices.\n   i.e. sum = min(x_0, y_0) + min(x_1, y_1) + min(x_2, y_2) + ...\n   The computation is performed in parallel with OpenMP and is correct for any\n   number of threads.\n*/\ndouble sumOfMinimumElements(const std::vector<double>& x,\n                            const std::vector<double>& y)\n{\n    // Use the shorter length if the vectors differ in size.\n    const std::size_t n = std::min(x.size(), y.size());\n\n    double sum = 0.0;\n\n    #pragma omp parallel for reduction(+:sum) schedule(static)\n    for (std::size_t i = 0; i < n; ++i) {\n        sum += std::min(x[i], y[i]);\n    }\n\n    return sum;\n}"
+}

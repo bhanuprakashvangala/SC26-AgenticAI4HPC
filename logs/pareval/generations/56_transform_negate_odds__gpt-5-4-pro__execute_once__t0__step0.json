@@ -1,0 +1,35 @@
+{
+  "ts": "2026-07-24T07:19:58.503400+00:00",
+  "model": "gpt-5.4-pro",
+  "api_response": {
+    "id": "resp_0aba3bfa0c9b52ab006a6311a498cc8196956047bbf567d752",
+    "served_model": "gpt-5.4-pro",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 190,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 1054,
+      "output_tokens_details": {
+        "reasoning_tokens": 905
+      },
+      "total_tokens": 1244
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* In the vector x negate the odd values and divide the even values by 2.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [16, 11, 12, 14, 1, 0, 5]\n   output: [8, -11, 6, 7, -1, 0, -5]\n*/\nvoid negateOddsAndHalveEvens(std::vector<int> &x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nvoid negateOddsAndHalveEvens(std::vector<int> &x) {\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(x.size());\n\n    #pragma omp parallel for default(none) shared(x, n) schedule(static)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        int &v = x[static_cast<std::size_t>(i)];\n        if (v % 2 != 0) {\n            v = -v;\n        } else {\n            v /= 2;\n        }\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nvoid negateOddsAndHalveEvens(std::vector<int> &x) {\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(x.size());\n\n    #pragma omp parallel for default(none) shared(x, n) schedule(static)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        int &v = x[static_cast<std::size_t>(i)];\n        if (v % 2 != 0) {\n            v = -v;\n        } else {\n            v /= 2;\n        }\n    }\n}"
+}

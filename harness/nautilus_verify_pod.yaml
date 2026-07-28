@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sc26-omp-verify
+  namespace: gp-engine-mizzou-radiant
+  labels:
+    app: sc26-omp-verify
+spec:
+  restartPolicy: Never
+  containers:
+    - name: gcc
+      image: gcc:12
+      command: ["sleep", "infinity"]
+      resources:
+        requests:
+          cpu: "4"
+          memory: 4Gi
+        limits:
+          cpu: "8"
+          memory: 16Gi

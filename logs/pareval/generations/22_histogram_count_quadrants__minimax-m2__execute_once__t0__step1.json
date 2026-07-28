@@ -1,0 +1,39 @@
+{
+  "ts": "2026-07-27T23:56:31.712656+00:00",
+  "model": "minimax-m2",
+  "api_response": {
+    "id": "chatcmpl-09776251-3c71-930e-854a-22a9b891c2ae",
+    "served_model": "MiniMaxAI/MiniMax-M2.7",
+    "created": 1785196466,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1442+gdd72658e7-tp4-ep-3d05fb0e",
+    "usage": {
+      "completion_tokens": 6000,
+      "prompt_tokens": 316,
+      "total_tokens": 6316,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "length",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n\n```"
+    },
+    {
+      "role": "user",
+      "content": "Your completion failed verification: CRASH. baseline.hpp:16:50: error: 'Point' was not declared in this scope. Return the corrected complete function in one ```cpp block."
+    }
+  ],
+  "raw_response": "",
+  "extracted_code": ""
+}

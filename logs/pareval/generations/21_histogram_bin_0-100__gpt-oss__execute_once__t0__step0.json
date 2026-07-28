@@ -1,0 +1,31 @@
+{
+  "ts": "2026-07-25T23:07:25.617818+00:00",
+  "model": "gpt-oss",
+  "api_response": {
+    "id": "chatcmpl-f6f05294-0a51-9f49-be77-5a5d660a8352",
+    "served_model": "openai/gpt-oss-120b",
+    "created": 1785020833,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1095+g94c0ef300-tp2-ep-c49bb217",
+    "usage": {
+      "completion_tokens": 794,
+      "prompt_tokens": 312,
+      "total_tokens": 1106,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "stop",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Vector x contains values between 0 and 100, inclusive. Count the number of\n   values in [0,10), [10, 20), [20, 30), ... and store the counts in `bins`.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [7, 32, 95, 12, 39, 32, 11, 71, 70, 66]\n   output: [1, 2, 0, 3, 0, 0, 1, 2, 0, 1]\n*/\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\n/* Vector x contains values between 0 and 100, inclusive.\n   Count the number of values in [0,10), [10,20), \u2026 , [90,100]\n   and store the counts in `bins`.  The implementation is safe for\n   any number of OpenMP threads. */\nvoid binsBy10Count(const std::vector<double>& x,\n                   std::array<std::size_t, 10>& bins)\n{\n    // Initialise the output bins to zero.\n    bins.fill(0);\n\n    // Determine the maximum number of threads that may be used.\n    const int max_threads = omp_get_max_threads();\n\n    // One private histogram per thread to avoid race conditions.\n    std::vector<std::array<std::size_t, 10>> local_bins(max_threads);\n    for (int t = 0; t < max_threads; ++t) {\n        local_bins[t].fill(0);\n    }\n\n    // Parallel loop: each thread updates its own private histogram.\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n\n        #pragma omp for schedule(static)\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            // Compute the bin index for the current value.\n            int idx = static_cast<int>(x[i] / 10.0);   // floor division\n            if (idx < 0) idx = 0;\n            if (idx >= 10) idx = 9;   // values equal to 100 go to the last bin\n\n            ++local_bins[tid][idx];\n        }\n    }\n\n    // Reduce the per\u2011thread histograms into the final result.\n    for (int t = 0; t < max_threads; ++t) {\n        for (int b = 0; b < 10; ++b) {\n            bins[b] += local_bins[t][b];\n        }\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\n/* Vector x contains values between 0 and 100, inclusive.\n   Count the number of values in [0,10), [10,20), \u2026 , [90,100]\n   and store the counts in `bins`.  The implementation is safe for\n   any number of OpenMP threads. */\nvoid binsBy10Count(const std::vector<double>& x,\n                   std::array<std::size_t, 10>& bins)\n{\n    // Initialise the output bins to zero.\n    bins.fill(0);\n\n    // Determine the maximum number of threads that may be used.\n    const int max_threads = omp_get_max_threads();\n\n    // One private histogram per thread to avoid race conditions.\n    std::vector<std::array<std::size_t, 10>> local_bins(max_threads);\n    for (int t = 0; t < max_threads; ++t) {\n        local_bins[t].fill(0);\n    }\n\n    // Parallel loop: each thread updates its own private histogram.\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n\n        #pragma omp for schedule(static)\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            // Compute the bin index for the current value.\n            int idx = static_cast<int>(x[i] / 10.0);   // floor division\n            if (idx < 0) idx = 0;\n            if (idx >= 10) idx = 9;   // values equal to 100 go to the last bin\n\n            ++local_bins[tid][idx];\n        }\n    }\n\n    // Reduce the per\u2011thread histograms into the final result.\n    for (int t = 0; t < max_threads; ++t) {\n        for (int b = 0; b < 10; ++b) {\n            bins[b] += local_bins[t][b];\n        }\n    }\n}"
+}

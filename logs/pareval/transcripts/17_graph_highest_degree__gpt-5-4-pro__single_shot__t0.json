@@ -1,0 +1,26 @@
+{
+  "ts": "2026-07-10T20:43:33.410704+00:00",
+  "task": "17_graph_highest_degree",
+  "type": "graph",
+  "model": "gpt-5.4-pro",
+  "condition": "single_shot",
+  "trial": 0,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <stdexcept>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    // Validate that A is an N x N matrix without risking overflow in N * N.\n    if ((A.size() % N) != 0 || (A.size() / N) != N) {\n        throw std::invalid_argument(\"A must contain exactly N*N elements.\");\n    }\n\n    int max_degree = 0;\n\n    #pragma omp parallel for reduction(max:max_degree) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int row_degree = 0;\n        const size_t row_start = static_cast<size_t>(i) * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            row_degree += (A[row_start + j] != 0) ? 1 : 0;\n        }\n\n        if (row_degree > max_degree) {\n            max_degree = row_degree;\n        }\n    }\n\n    return max_degree;\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <stdexcept>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    // Validate that A is an N x N matrix without risking overflow in N * N.\n    if ((A.size() % N) != 0 || (A.size() / N) != N) {\n        throw std::invalid_argument(\"A must contain exactly N*N elements.\");\n    }\n\n    int max_degree = 0;\n\n    #pragma omp parallel for reduction(max:max_degree) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int row_degree = 0;\n        const size_t row_start = static_cast<size_t>(i) * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            row_degree += (A[row_start + j] != 0) ? 1 : 0;\n        }\n\n        if (row_degree > max_degree) {\n            max_degree = row_degree;\n        }\n    }\n\n    return max_degree;\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "robust": true
+}

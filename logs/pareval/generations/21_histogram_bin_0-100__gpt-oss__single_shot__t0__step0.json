@@ -1,0 +1,31 @@
+{
+  "ts": "2026-07-25T23:07:08.628743+00:00",
+  "model": "gpt-oss",
+  "api_response": {
+    "id": "chatcmpl-9a7396e8-8d26-99ce-b76a-c3a450d52607",
+    "served_model": "openai/gpt-oss-120b",
+    "created": 1785020807,
+    "system_fingerprint": "vllm-0.23.1rc1.dev1095+g94c0ef300-tp2-ep-c49bb217",
+    "usage": {
+      "completion_tokens": 779,
+      "prompt_tokens": 312,
+      "total_tokens": 1091,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": null
+    },
+    "finish_reason": "stop",
+    "provider": "nrp"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Vector x contains values between 0 and 100, inclusive. Count the number of\n   values in [0,10), [10, 20), [20, 30), ... and store the counts in `bins`.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [7, 32, 95, 12, 39, 32, 11, 71, 70, 66]\n   output: [1, 2, 0, 3, 0, 0, 1, 2, 0, 1]\n*/\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\n/*  Vector x contains values between 0 and 100, inclusive.\n    Count the number of values in [0,10), [10,20), \u2026, [90,100]\n    and store the counts in `bins`.  The implementation is safe for\n    any number of OpenMP threads. */\nvoid binsBy10Count(const std::vector<double>& x,\n                   std::array<std::size_t, 10>& bins)\n{\n    // Initialise the output bins.\n    for (std::size_t i = 0; i < bins.size(); ++i) bins[i] = 0;\n\n    #pragma omp parallel\n    {\n        // Private copy for each thread \u2013 no race conditions while counting.\n        std::array<std::size_t, 10> local{};\n        local.fill(0);\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            double v = x[i];\n\n            // Determine the bin index.\n            // Values are in [0,100]; the last bin must also contain 100.\n            int idx = (v == 100.0) ? 9 : static_cast<int>(v / 10.0);\n            if (idx < 0) idx = 0;\n            if (idx > 9) idx = 9;   // safety guard for out\u2011of\u2011range data\n\n            ++local[idx];\n        }\n\n        // Merge the thread\u2011local results into the shared `bins`.\n        #pragma omp critical\n        {\n            for (std::size_t j = 0; j < bins.size(); ++j) {\n                bins[j] += local[j];\n            }\n        }\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\n/*  Vector x contains values between 0 and 100, inclusive.\n    Count the number of values in [0,10), [10,20), \u2026, [90,100]\n    and store the counts in `bins`.  The implementation is safe for\n    any number of OpenMP threads. */\nvoid binsBy10Count(const std::vector<double>& x,\n                   std::array<std::size_t, 10>& bins)\n{\n    // Initialise the output bins.\n    for (std::size_t i = 0; i < bins.size(); ++i) bins[i] = 0;\n\n    #pragma omp parallel\n    {\n        // Private copy for each thread \u2013 no race conditions while counting.\n        std::array<std::size_t, 10> local{};\n        local.fill(0);\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            double v = x[i];\n\n            // Determine the bin index.\n            // Values are in [0,100]; the last bin must also contain 100.\n            int idx = (v == 100.0) ? 9 : static_cast<int>(v / 10.0);\n            if (idx < 0) idx = 0;\n            if (idx > 9) idx = 9;   // safety guard for out\u2011of\u2011range data\n\n            ++local[idx];\n        }\n\n        // Merge the thread\u2011local results into the shared `bins`.\n        #pragma omp critical\n        {\n            for (std::size_t j = 0; j < bins.size(); ++j) {\n                bins[j] += local[j];\n            }\n        }\n    }\n}"
+}

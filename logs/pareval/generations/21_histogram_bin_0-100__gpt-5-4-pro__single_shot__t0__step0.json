@@ -1,0 +1,35 @@
+{
+  "ts": "2026-07-12T13:43:01.002540+00:00",
+  "model": "gpt-5.4-pro",
+  "api_response": {
+    "id": "resp_0eafde7bdff2ac09006a539930e0d08196a0c7efb8325ef620",
+    "served_model": "gpt-5.4-pro",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 248,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 1680,
+      "output_tokens_details": {
+        "reasoning_tokens": 1422
+      },
+      "total_tokens": 1928
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Vector x contains values between 0 and 100, inclusive. Count the number of\n   values in [0,10), [10, 20), [20, 30), ... and store the counts in `bins`.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [7, 32, 95, 12, 39, 32, 11, 71, 70, 66]\n   output: [1, 2, 0, 3, 0, 0, 1, 2, 0, 1]\n*/\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <array>\n#include <cstddef>\n#include <vector>\n\nusing std::size_t;\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 10> local_bins{};\n        local_bins.fill(0);\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < x.size(); ++i) {\n            const double v = x[i];\n\n            int bin = static_cast<int>(v / 10.0);\n            if (bin < 0) {\n                bin = 0;\n            } else if (bin > 9) {\n                // Places v == 100.0 into the last bin.\n                bin = 9;\n            }\n\n            ++local_bins[static_cast<size_t>(bin)];\n        }\n\n        for (int b = 0; b < 10; ++b) {\n            #pragma omp atomic update\n            bins[static_cast<size_t>(b)] += local_bins[static_cast<size_t>(b)];\n        }\n    }\n}\n```",
+  "extracted_code": "#include <omp.h>\n#include <array>\n#include <cstddef>\n#include <vector>\n\nusing std::size_t;\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 10> local_bins{};\n        local_bins.fill(0);\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < x.size(); ++i) {\n            const double v = x[i];\n\n            int bin = static_cast<int>(v / 10.0);\n            if (bin < 0) {\n                bin = 0;\n            } else if (bin > 9) {\n                // Places v == 100.0 into the last bin.\n                bin = 9;\n            }\n\n            ++local_bins[static_cast<size_t>(bin)];\n        }\n\n        for (int b = 0; b < 10; ++b) {\n            #pragma omp atomic update\n            bins[static_cast<size_t>(b)] += local_bins[static_cast<size_t>(b)];\n        }\n    }\n}"
+}

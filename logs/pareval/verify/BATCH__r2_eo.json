@@ -1,0 +1,15 @@
+{
+  "ts": "2026-07-28T00:16:13.433167+00:00",
+  "threads": [
+    1
+  ],
+  "reps": 1,
+  "n_cells": 3,
+  "n_chunks": 1,
+  "cell_ids": [
+    "22_histogram_count_quadrants__minimax-m2__execute_once__t0",
+    "26_reduce_product_of_inverses__minimax-m2__execute_once__t0",
+    "33_scan_reverse_prefix_sum__minimax-m2__execute_once__t0"
+  ],
+  "raw": "CELL 22_histogram_count_quadrants__minimax-m2__execute_once__t0 VERDICT=CRASH DIAG=baseline.hpp:16:50: error: 'Point' was not declared in this scope \nCELL 26_reduce_product_of_inverses__minimax-m2__execute_once__t0 SWEEP t1=0/1\nCELL 26_reduce_product_of_inverses__minimax-m2__execute_once__t0 VERDICT=NOT_ROBUST DIAG=validation FAIL on 1 of 1 thread/rep runs (race/order-dependence)\nCELL 33_scan_reverse_prefix_sum__minimax-m2__execute_once__t0 VERDICT=CRASH DIAG=cpu.cc:44:5: error: 'reversePrefixSum' was not declared in this scope; did you mean 'correctReversePrefixSum'? \nALLDONE\n\n"
+}
