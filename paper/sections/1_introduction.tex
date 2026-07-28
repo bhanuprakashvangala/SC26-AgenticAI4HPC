@@ -4,102 +4,132 @@ Agentic AI---systems that plan, reason, and use tools autonomously---is rapidly
 being adopted to write the parallel and distributed code at the heart of
 high-performance and scientific computing: refactoring legacy kernels, translating
 across programming models, and generating the data-processing stages that connect
-simulation, analytics, and machine learning~\cite{agentic_hpc}. The productivity
-case is strong. The reliability question is new and sharp: when an agent writes
-code whose correctness depends on \emph{how it is executed in parallel}, on what
-basis do we trust what it produced?
+simulation, analytics, and machine learning~\cite{agentic_hpc}. As it is, these
+systems increasingly \emph{accept their own work}: the agent generates a program, an
+execution-based tool returns a verdict, and it ships---or repairs and
+re-submits---on the strength of that verdict. That same verdict is the signal at the
+center of the reinforcement learning that now post-trains code models, where a
+deterministic verifier replaces human preference as the reward~\cite{rlvr,grpo}.
+This is the setting of \emph{verification-guided} post-training: generation is treated
+as a control problem in which a stage of work terminates, and reward is paid, only
+when an execution verifier confirms success---an execution-based termination
+condition on a temporally abstracted action, or \emph{option}, in the
+sense of~\cite{options}. Whether the verifier is consumed as an agent's acceptance
+gate or as such an RL reward, it \emph{is} the operational definition of ``good''
+parallel code. The reliability question is therefore a question about the verifier:
+\emph{what must an execution-based gate check before we should trust---or optimize
+toward---the parallel code an agent produces?}
 
-Two properties make this hard. First, the correctness of parallel and distributed
-code is a \emph{global} property of its execution. Whether a result is right can
-depend on how many partitions or threads the work is divided into, whether an
-operation imposes a total order, and how partial results are combined across
-workers---none of which is visible in the \emph{local} sequence of tokens a code
-model attends to. The difficulty is documented: state-of-the-art models are far
+Two properties make this hard for parallel code. First, the correctness of parallel
+and distributed code is a \emph{global} property of its execution. Whether a result
+is right can depend on how many partitions or threads the work is divided into,
+whether an operation imposes a total order, and how partial results are combined
+across workers---none of which is visible in the \emph{local} sequence of tokens a
+code model attends to. The difficulty is documented: state-of-the-art models are far
 less reliable at parallel code than at its serial equivalent~\cite{pareval}, and
-generated parallel routines routinely harbor races and nondeterminism that a
-casual run does not reveal. Second, and specific to \emph{agentic} systems: an
-agent that checks its own work by \emph{executing it once} observes that the
-program ran and produced plausible output, and concludes it is correct. But
-distribution- and concurrency-semantics bugs need not fail on any single run. The
-very signal an agent naturally uses to verify itself can be blind to a class of
-bugs that only a change of configuration reveals---and so is the check a developer
-most often performs.
+generated parallel routines routinely harbor races and nondeterminism that a casual
+run does not reveal. Second, and specific to \emph{agentic} systems: an agent that
+checks its own work by \emph{executing it once} observes that the program ran and
+produced plausible output, and concludes it is correct. But distribution- and
+concurrency-semantics bugs need not fail on any single run. The very signal an agent
+naturally uses to verify itself---and that an RL loop would reward---can be blind to
+a class of bugs that only a change of configuration reveals, and so is the check a
+developer most often performs.
 
-Consider an agent asked to compute a histogram---count how many array elements
-fall into each of several bins. The agent writes an OpenMP loop that increments a
-shared bin array in parallel, runs it once, sees a plausible histogram, and
-submits. The program is wrong: multiple threads update the same bin counter
-without synchronization, so counts are lost to a data race. But on a single thread
-the loop runs sequentially and the histogram is exactly right, and even on several
-threads the lost updates may be few enough to look plausible. Nothing in a single
-run reliably reveals this---not to a developer who validated once, and not to an
-agent whose only tool is to execute and inspect the output. The bug is invisible
-to exactly the check that was performed.
+Consider an agent asked to compute a histogram---count how many array elements fall
+into each of several bins. The agent writes an OpenMP loop that increments a shared
+bin array in parallel, runs it once, sees a plausible histogram, and submits. The
+program is wrong: multiple threads update the same bin counter without
+synchronization, so counts are lost to a data race. But on a single thread the loop
+runs sequentially and the histogram is exactly right, and even on several threads the
+lost updates may be few enough to look plausible. Nothing in a single run reliably
+reveals this---not to a developer who validated once, and not to an agent whose only
+tool is to execute and inspect the output. The bug is invisible to exactly the check
+that was performed, and any reward computed from that check would certify it.
 
-We frame the property such a check should establish as \emph{configuration-robust
+We frame the property such a signal should establish as \emph{configuration-robust
 correctness}: a generated program is robustly correct only if it agrees with a
 trusted serial reference under \emph{every} execution configuration---each thread
-count and repeated run---rather than under the single configuration that happens
-to be tested. The quantity of interest is the \emph{gap} between
+count and repeated run---rather than under the single configuration that happens to
+be tested. The quantity of interest is the \emph{gap} between
 \emph{single-configuration correctness}, what an ordinary run observes, and
 configuration-robust correctness: programs in this gap pass the check yet are not
-robust. This gap is the silent-failure surface---and, crucially for an agent, it
-is \emph{actionable}: the right verification tool can expose it.
+robust. This gap is the silent-failure surface---and, crucially for an agent, it is
+\emph{actionable}: the right verification tool can expose it.
 
-A natural hypothesis is that closing this gap is primarily a matter of
-\emph{verification}: an agent that can differentially execute its code across
-configurations should detect the programs in the gap and repair them, whereas an
-agent limited to single-configuration execution cannot. Existing self-repair
-loops---Self-Debugging~\cite{selfdebug}, Reflexion~\cite{reflexion}, and, in HPC,
-self-correcting parallel-code translation~\cite{lassi}---close the loop but consume
-exactly the single-configuration signal that is, in principle, blind to these bugs.
-This motivates two questions. First, the one we set out to answer: \emph{how often
-does agent-generated parallel code fall into this gap, and does distribution-aware
-differential verification measurably improve robust correctness?} The answer, on
-standard tasks with frontier models, is a clarifying \emph{no}---correctness is
-already largely solved. That answer forces the second, sharper question, which
-becomes the heart of the paper: \emph{if these programs are robustly correct, are
-they actually parallel?} A robustness metric defined on outputs is silent here---and
-maximized by deleting every parallel construct---so we measure the performance axis
-directly and find that this, not correctness, is where accepted code now fails.
+But a signal that will be \emph{optimized}---by an agent's repair loop, or by an RL
+post-training objective built on verifiable rewards~\cite{rlvr,grpo}---can fail as a
+specification in two distinct ways, and both organize this paper. It can be
+\emph{saturated}: if capable models already satisfy it, a more sensitive correctness
+signal supplies no additional gradient, and the effort spent making verification
+finer is wasted. And it can be \emph{gameable}: if its optimum is reachable by a
+degenerate solution, whatever optimizes it drifts toward that solution. We find the
+natural correctness signal for parallel code exhibits \emph{both} pathologies at the
+frontier. The saturation is empirical: existing self-repair loops---Self-Debugging
+\cite{selfdebug}, Reflexion~\cite{reflexion}, and, in HPC, self-correcting
+parallel-code translation~\cite{lassi}---consume a single-configuration signal that is
+\emph{in principle} blind to nondeterministic races, yet for frontier models on
+standard tasks a distribution-aware signal that is \emph{not} blind changes nothing,
+because those models seldom write the bug. The gameability is structural: robust
+correctness is a predicate on outputs, and a serial program with every parallel
+construct deleted satisfies it perfectly---so the signal is \emph{maximized} by code
+that does not parallelize at all. The remedy follows the same verification-guided
+logic that motivated the correctness gate: pair it with a second verification-gated
+option---a \emph{performance} gate whose termination condition is not ``does it agree
+with the reference'' but ``does it actually scale''---so that the reward an agent or
+an RL loop optimizes is two-axis, correct \emph{and} parallel. This paper establishes
+the evidence for that gate; building and training it is the natural next step
+(Section~\ref{sec:discussion}).
 
 We answer with an open, reproducible study built on \textsc{ParEval}~\cite{pareval},
 the standard benchmark for LLM-generated parallel code. A tool-using agent writes
 OpenMP code and can invoke a small toolbox: compile and run a draft at one thread
 count, or \emph{differentially verify} it across a thread-count sweep with repeated
-runs against \textsc{ParEval}'s serial reference. Compilation and execution run on
-a multi-core cloud machine. We evaluate the agent with state-of-the-art models
-and, in a controlled \emph{tool-ablation}, remove the
-differential verifier to isolate its contribution; final correctness is always
-scored by an independent verifier over the full thread sweep, so the outcome
-measure does not depend on which tools the agent was given.
+runs against \textsc{ParEval}'s serial reference. Compilation and execution run on a
+multi-core cloud machine. We evaluate the agent with state-of-the-art models and, in
+a controlled \emph{tool-ablation}, remove the differential verifier to isolate its
+contribution; final correctness is always scored by an independent verifier over the
+full thread sweep, so the outcome measure does not depend on which tools the agent
+was given. Then, holding correctness fixed, we measure the second axis the signal
+ignores---realized speedup---on every accepted program.
 
 \noindent This paper makes five contributions.
-\emph{First}, we formalize \emph{configuration-robust correctness} and the
-\emph{single-configuration-to-robust gap} as the evaluation lens for
-agent-generated parallel and distributed code, distinct from single-execution
-functional correctness (Section~\ref{sec:metric}).
-\emph{Second}, we build a distribution-aware differential verifier and expose it
-as a first-class tool inside a tool-using agent that writes and self-repairs
-parallel code; we release the harness, tasks, prompts, and complete agent
+\emph{First}, we frame the design of the execution-based acceptance signal for
+agent-generated parallel code---equivalently, the verifiable reward an RL loop would
+optimize---as the central reliability question, and identify the two ways such a
+signal fails as a specification: \emph{saturation} and \emph{gameability}
+(Section~\ref{sec:metric}). We formalize \emph{configuration-robust correctness} and
+the \emph{single-configuration-to-robust gap} as the correctness axis of that signal,
+distinct from single-execution functional correctness.
+\emph{Second}, we build a distribution-aware differential verifier and expose it as a
+first-class tool inside a tool-using agent that writes and self-repairs parallel
+code; we release the harness, tasks, prompts, the two-axis scorer, and complete agent
 transcripts in line with the SC26 reproducibility initiative
 (Sections~\ref{sec:metric}--\ref{sec:setup}).
-\emph{Third}, we evaluate the agent with state-of-the-art models on ParEval's
-OpenMP tasks, reporting configuration-robust correctness with repeated runs and
-Wilson confidence intervals (Section~\ref{sec:results}).
-\emph{Fourth}, our controlled tool-ablation returns a \emph{negative and
-clarifying} result: for \Nmodels{} state-of-the-art models on standard OpenMP tasks, the
+\emph{Third}, we evaluate the agent with state-of-the-art models on ParEval's OpenMP
+tasks and find the correctness signal \emph{saturated}: single-shot generation is
+already robustly correct \Lzerorate{} of the time, a repair loop raises this to
+\Lonerate{}, and the full differential verifier leaves it unchanged at \Ltworate{},
+with Wilson confidence intervals throughout (Section~\ref{sec:results}).
+\emph{Fourth}, our controlled tool-ablation returns a \emph{negative and clarifying}
+result: for \Nmodels{} state-of-the-art models on standard OpenMP tasks, the
 differential verifier does not improve over single-configuration execution, because
 these models seldom emit the silent-race failure mode it targets; their errors are
-semantic and already visible at one thread, and it is the agent's \emph{repair
-loop}, not the verifier's granularity, that drives the improvement over single-shot
-generation. A positive control with injected races and an open-weights panel---on
-which a smaller model ships a genuine race the verifier catches and repairs---bound
-the tool's value: it rises exactly as capability falls (Sections~\ref{sec:results}--\ref{sec:discussion}).
-\emph{Fifth}, and most consequential, we show that configuration-robust correctness
-is \emph{necessary but not sufficient} and gameable by construction---a serial
-program scores perfectly---and measure the second, performance axis directly: the
-programs the verifier accepts span $0.33\times$ to $7.9\times$ speedup on eight
-threads, one running \emph{slower} in parallel than serially. Once frontier models
-make race-freedom cheap, ``correct but not parallel'' is where agent-generated HPC
-code fails, and an output-only acceptance test cannot see it (Section~\ref{sec:scaling}).
+semantic and already visible at one thread, and it is the agent's \emph{repair loop},
+not the verifier's granularity, that drives the improvement over single-shot
+generation. A positive control with injected races, an independent happens-before
+detector (Archer), and an open-weights panel---on which a smaller model ships a
+genuine race the verifier catches and repairs---bound the tool's value: it rises
+exactly as capability falls (Sections~\ref{sec:results}--\ref{sec:discussion}).
+\emph{Fifth}, and most consequential, we show the correctness signal is
+\emph{gameable by construction}---a serial program scores perfectly---and measure the
+second, performance axis directly: the programs the verifier accepts span
+$0.33\times$ to $7.9\times$ speedup on eight threads, one running \emph{slower} in
+parallel than serially. Once frontier models make race-freedom cheap, any acceptance
+gate or verifiable reward for HPC code must score \emph{both} axes---correctness
+\emph{and} realized parallelism---because ``correct but not parallel'' is where
+agent-generated HPC code now fails, and an output-only signal cannot see it. We
+therefore argue for a two-axis verification-guided reward, adding a \emph{performance
+gate} beside the correctness gate, and show on our own data that selecting programs by
+correctness alone leaves large speedups on the table that a two-axis reward recovers
+(Section~\ref{sec:scaling}, Section~\ref{sec:discussion}).

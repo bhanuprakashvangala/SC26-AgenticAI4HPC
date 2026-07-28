@@ -1,0 +1,204 @@
+"""Reward-selection experiment: a correctness-only reward cannot choose among
+equally-correct programs, so it leaves parallelism on the table that a two-axis
+(correctness x speedup) reward recovers.
+
+This is the empirical core of the "verification-guided reward must be two-axis"
+argument, and it runs entirely on results already in the repo -- no model access
+needed. Every accepted (robustly-correct) program in results/scaling.jsonl carries a
+measured 8-thread self-speedup. We treat the set of accepted programs for a task as
+the candidate pool a generator/RL loop chooses from, and compare two rewards:
+
+  R_correct  (correctness only): every accepted program scores 1. The reward is
+             indifferent, so an uninformed selection realizes, in expectation, the
+             MEAN speedup of the pool (a random correct pick), and in the worst case
+             the MIN.
+  R_2axis    (correctness x efficiency): among accepted programs the score is the
+             measured speedup, so selection realizes the MAX.
+
+We also sweep best-of-N: with N candidates kept, the two-axis reward realizes the
+expected maximum over a random N-subset, while the correctness-only reward stays flat
+at the pool mean (it has no signal to exploit a larger N). Outputs: a per-task JSONL,
+LaTeX macros for the paper, and the publication figure.
+
+Usage:  python -m harness.reward_selection
+"""
+from __future__ import annotations
+import json
+import os
+from itertools import combinations
+from statistics import mean
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(HERE)
+SCALING = os.path.join(ROOT, "results", "scaling.jsonl")
+OUT_JSONL = os.path.join(ROOT, "results", "reward_selection.jsonl")
+OUT_TEX = os.path.join(ROOT, "results", "reward_numbers.tex")
+OUT_TEX_PAPER = os.path.join(ROOT, "paper", "reward_numbers.tex")
+FIG_DIR = os.path.join(ROOT, "results", "figures")
+
+
+def load_pools():
+    """task -> list of accepted-program speedups (self_speedup at 8 threads)."""
+    pools: dict[str, list[float]] = {}
+    meta: dict[str, str] = {}
+    for line in open(SCALING):
+        line = line.strip()
+        if not line:
+            continue
+        r = json.loads(line)
+        if r.get("valid") != "PASS":
+            continue
+        pools.setdefault(r["task"], []).append(float(r["self_speedup8"]))
+        meta[r["task"]] = r.get("type", "")
+    return pools, meta
+
+
+def expected_max_of_n(speedups: list[float], n: int) -> float:
+    """Expected max over a uniformly-random N-subset (exact, by enumeration)."""
+    k = len(speedups)
+    if n >= k:
+        return max(speedups)
+    subs = list(combinations(speedups, n))
+    return mean(max(s) for s in subs)
+
+
+def main():
+    pools, meta = load_pools()
+    multi = {t: v for t, v in pools.items() if len(v) >= 2}
+
+    per_task = []
+    for t, v in sorted(multi.items()):
+        per_task.append({
+            "task": t,
+            "type": meta[t],
+            "n_candidates": len(v),
+            "corr_only_expected": mean(v),   # random correct pick
+            "corr_only_worst": min(v),       # adversarial correct pick
+            "two_axis": max(v),              # speedup-aware pick
+            "speedups": sorted(v),
+        })
+
+    with open(OUT_JSONL, "w") as f:
+        for row in per_task:
+            f.write(json.dumps(row) + "\n")
+
+    # ---- aggregate headline numbers (means across multi-candidate tasks) ----
+    two_axis = mean(r["two_axis"] for r in per_task)
+    corr_exp = mean(r["corr_only_expected"] for r in per_task)
+    corr_worst = mean(r["corr_only_worst"] for r in per_task)
+    gain_pct = 100.0 * (two_axis - corr_exp) / corr_exp
+    worst_gain_x = two_axis / corr_worst
+
+    # most extreme single task (max spread within a pool)
+    spread = max(per_task, key=lambda r: r["two_axis"] - r["corr_only_worst"])
+
+    # ---- best-of-N curve, averaged across tasks that have >= N candidates ----
+    max_n = max(r["n_candidates"] for r in per_task)
+    curve = []
+    for n in range(1, max_n + 1):
+        elig = [v for v in multi.values() if len(v) >= n]
+        two = mean(expected_max_of_n(v, n) for v in elig)
+        one = mean(mean(v) for v in elig)          # flat: no signal to exploit N
+        curve.append({"n": n, "two_axis": two, "corr_only": one, "n_tasks": len(elig)})
+
+    macros = {
+        "RewardTwoAxis": f"{two_axis:.2f}",
+        "RewardRandom": f"{corr_exp:.2f}",
+        "RewardWorst": f"{corr_worst:.2f}",
+        "RewardGainPct": f"{gain_pct:.0f}",
+        "RewardWorstGain": f"{worst_gain_x:.1f}",
+        "NmultiTask": str(len(per_task)),
+        "RewardSpreadTask": spread["task"].split("_", 1)[-1].replace("_", " "),
+        "RewardSpreadLo": f"{spread['corr_only_worst']:.2f}",
+        "RewardSpreadHi": f"{spread['two_axis']:.2f}",
+    }
+    tex = "".join(f"\\newcommand{{\\{k}}}{{{v}}}\n" for k, v in macros.items())
+    for path in (OUT_TEX, OUT_TEX_PAPER):
+        with open(path, "w") as f:
+            f.write("% Auto-generated by harness/reward_selection.py -- do not hand-edit.\n")
+            f.write(tex)
+
+    make_figure(per_task, curve)
+
+    print("=== reward-selection experiment ===")
+    print(f"multi-candidate tasks: {len(per_task)} of {len(pools)}")
+    print(f"two-axis reward realizes    : {two_axis:.2f}x mean 8-thread speedup")
+    print(f"correctness-only (random)   : {corr_exp:.2f}x  ({gain_pct:+.0f}% vs two-axis)")
+    print(f"correctness-only (worst)    : {corr_worst:.2f}x")
+    print(f"most extreme pool ({spread['task']}): "
+          f"{spread['corr_only_worst']:.2f}x -> {spread['two_axis']:.2f}x")
+    print(f"wrote {OUT_JSONL}")
+    print(f"wrote {OUT_TEX} and {OUT_TEX_PAPER}")
+    print(f"wrote {os.path.join(FIG_DIR, 'fig_reward_selection.pdf')}")
+
+
+def make_figure(per_task, curve):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import sys
+    sys.path.insert(0, HERE)
+    import figstyle as fs
+    fs.apply_style(plt)
+
+    os.makedirs(FIG_DIR, exist_ok=True)
+    fig, (axB, axA) = plt.subplots(1, 2, figsize=(9.4, 3.7),
+                                   gridspec_kw={"width_ratios": [1.0, 1.25]})
+
+    # ---------- Panel (a): best-of-N -- the gap widens with N ----------
+    ns = [c["n"] for c in curve]
+    axB.plot(ns, [c["two_axis"] for c in curve], "-o", color=fs.C_L2, lw=2.2,
+             ms=6, mfc="white", mew=1.8, label="two-axis reward (correct x speedup)",
+             zorder=3)
+    axB.plot(ns, [c["corr_only"] for c in curve], "--s", color=fs.C_L0, lw=2.0,
+             ms=5, mfc="white", mew=1.6, label="correctness-only reward", zorder=2)
+    axB.fill_between(ns, [c["corr_only"] for c in curve],
+                     [c["two_axis"] for c in curve], color=fs.C_L2, alpha=0.08,
+                     zorder=1)
+    axB.set_xlabel("candidates kept ($N$)")
+    axB.set_ylabel("realized 8-thread speedup ($\\times$)")
+    axB.set_title("(a) Best-of-$N$: correctness alone\ncannot exploit more samples",
+                  loc="left")
+    axB.set_xticks(ns)
+    axB.legend(loc="lower right")
+    fs.despine(axB)
+
+    # ---------- Panel (b): per-task candidate pools ----------
+    order = sorted(per_task, key=lambda r: r["two_axis"])
+    y = range(len(order))
+    for i, r in enumerate(order):
+        s = r["speedups"]
+        axA.plot([min(s), max(s)], [i, i], color=fs.GRIDC, lw=3, zorder=1,
+                 solid_capstyle="round")
+        axA.scatter(s, [i] * len(s), s=22, color=fs.MUTE, alpha=0.55, zorder=2,
+                    edgecolors="none")
+        axA.scatter([r["corr_only_expected"]], [i], s=46, color=fs.C_L0,
+                    zorder=3, edgecolors="white", linewidths=0.8)
+        axA.scatter([r["two_axis"]], [i], s=52, color=fs.C_L2, marker="D",
+                    zorder=4, edgecolors="white", linewidths=0.8)
+    axA.axvline(1.0, color=fs.C_RACE, lw=1.1, ls=":", zorder=1)
+    axA.text(1.0, len(order) - 0.3, " serial (1$\\times$)", color=fs.C_RACE,
+             fontsize=9, va="top", ha="left")
+    axA.set_yticks(list(y))
+    axA.set_yticklabels([r["task"].split("_", 1)[-1].replace("_", " ")[:22]
+                         for r in order], fontsize=8.5)
+    axA.set_xlabel("8-thread self-speedup ($\\times$) of accepted programs")
+    axA.set_title("(b) Every dot is a program the correctness gate\naccepted "
+                  "equally; the reward cannot tell them apart", loc="left")
+    # direct-label the marks on the top row
+    top = order[-1]
+    axA.annotate("two-axis picks this", (top["two_axis"], len(order) - 1),
+                 xytext=(0, 12), textcoords="offset points", fontsize=8.5,
+                 color=fs.C_L2, ha="center",
+                 arrowprops=dict(arrowstyle="-", color=fs.C_L2, lw=0.8))
+    fs.despine(axA)
+    axA.grid(axis="y", visible=False)
+
+    fig.tight_layout(w_pad=2.0)
+    for ext in ("pdf", "png"):
+        fig.savefig(os.path.join(FIG_DIR, f"fig_reward_selection.{ext}"))
+    plt.close(fig)
+
+
+if __name__ == "__main__":
+    main()
