@@ -1,0 +1,27 @@
+96 cells to run (skipped 0 done)
+generating round 0 for all cells ...
+round 0: verifying 32 execute_once + 32 differential_verify ...
+round 1: verifying 11 execute_once + 12 differential_verify ...
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 265, in <module>
+    main()
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 221, in main
+    res.update(batch_verify(dv, THREADS, REPS, f"r{rnd}_dv"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 155, in batch_verify
+    msg = _invoke_vm(p)
+          ^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 128, in _invoke_vm
+    out = subprocess.run([AZ, "vm", "run-command", "invoke", "-g", RG, "-n", VM,
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\AppData\Local\Programs\Python\Python312-arm64\Lib\subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\AppData\Local\Programs\Python\Python312-arm64\Lib\subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\AppData\Local\Programs\Python\Python312-arm64\Lib\subprocess.py", line 1634, in _communicate
+    raise TimeoutExpired(self.args, orig_timeout)
+subprocess.TimeoutExpired: Command '['C:\\Program Files\\Microsoft SDKs\\Azure\\CLI2\\wbin\\az.cmd', 'vm', 'run-command', 'invoke', '-g', 'dsp-dev-rg', '-n', 'sc26hpc', '--command-id', 'RunShellScript', '--scripts', '@C:\\Users\\T-BVAN~1\\AppData\\Local\\Temp\\tmpxw1cgbct.sh', '--query', 'value[0].message', '-o', 'tsv']' timed out after 3600 seconds

@@ -1,0 +1,29 @@
+
+######################################################################
+# MODEL qwen3-small
+######################################################################
+0 cells to run (skipped 36 done)
+# qwen3-small exit=0
+
+######################################################################
+# MODEL gpt-oss
+######################################################################
+0 cells to run (skipped 36 done)
+# gpt-oss exit=0
+
+######################################################################
+# MODEL minimax-m2
+######################################################################
+18 cells to run (skipped 36 done)
+generating round 0 for all cells ...
+round 0: verifying 6 execute_once + 6 differential_verify ...
+round 1: verifying 5 execute_once + 2 differential_verify ...
+round 2: verifying 3 execute_once + 2 differential_verify ...
+final scoring 18 cells (full sweep) ...
+
+done: 10/18 robust. wrote results\pareval_open.jsonl
+# minimax-m2 exit=0
+
+######################################################################
+# MODEL gemma
+######################################################################

@@ -14,12 +14,13 @@ __pycache__/
 venv/
 
 # Large external checkouts / archives
-external/ParEval/
 _archive_benchmark/
 
-# Scratch / build artifacts
+# Scratch / build artifacts (LaTeX build only — keep experiment run logs)
 *.aux
 *.log
+!logs/*.log
+!results/*.log
 *.bbl
 *.blg
 *.out

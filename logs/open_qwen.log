@@ -1,0 +1,33 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 323, in <module>
+    main()
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 274, in main
+    res.update(batch_verify(eo, [1], 1, f"r{rnd}_eo"))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 208, in batch_verify
+    msg = _invoke(p)
+          ^^^^^^^^^^
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 190, in _invoke
+    return _invoke_pod(script_path, timeout=min(timeout, 600))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 174, in _invoke_pod
+    out = subprocess.run([KUBECTL, "exec", "-i", POD, "-n", NS, "--",
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\AppData\Local\Programs\Python\Python312-arm64\Lib\subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+18 cells to run (skipped 0 done)
+generating round 0 for all cells ...
+round 0: verifying 6 execute_once + 6 differential_verify ...
+round 1: verifying 2 execute_once + 6 differential_verify ...
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\AppData\Local\Programs\Python\Python312-arm64\Lib\subprocess.py", line 1228, in communicate
+    sts = self.wait(timeout=self._remaining_time(endtime))
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\AppData\Local\Programs\Python\Python312-arm64\Lib\subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\AppData\Local\Programs\Python\Python312-arm64\Lib\subprocess.py", line 1593, in _wait
+    raise TimeoutExpired(self.args, timeout)
+subprocess.TimeoutExpired: Command '['kubectl', 'exec', '-i', 'sc26-omp-verify', '-n', 'gp-engine-mizzou-radiant', '--', 'bash', '-s']' timed out after -31192.563 seconds

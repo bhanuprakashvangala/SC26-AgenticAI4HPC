@@ -1,0 +1,66 @@
+
+######################################################################
+# MODEL qwen3-small
+######################################################################
+18 cells to run (skipped 0 done)
+generating round 0 for all cells ...
+round 0: verifying 6 execute_once + 6 differential_verify ...
+round 1: verifying 2 execute_once + 2 differential_verify ...
+round 2: verifying 2 execute_once + 2 differential_verify ...
+final scoring 18 cells (full sweep) ...
+
+done: 11/18 robust. wrote results\pareval_open.jsonl
+# qwen3-small exit=0
+
+######################################################################
+# MODEL gpt-oss
+######################################################################
+18 cells to run (skipped 18 done)
+generating round 0 for all cells ...
+round 0: verifying 6 execute_once + 6 differential_verify ...
+round 1: verifying 2 execute_once + 4 differential_verify ...
+round 2: verifying 2 execute_once + 2 differential_verify ...
+final scoring 18 cells (full sweep) ...
+
+done: 12/18 robust. wrote results\pareval_open.jsonl
+# gpt-oss exit=0
+
+######################################################################
+# MODEL minimax-m2
+######################################################################
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 323, in <module>
+    main()
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 256, in main
+    gen(c)
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 102, in gen
+    raw = client.chat(model_id, cell.messages, max_tokens=budget)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\nrp_llm.py", line 123, in chat
+    raise RuntimeError(f"nrp chat failed after {retries} attempts: {last_err}")
+RuntimeError: nrp chat failed after 6 attempts: Connection error.
+18 cells to run (skipped 36 done)
+generating round 0 for all cells ...
+# minimax-m2 exit=1
+
+######################################################################
+# MODEL gemma
+######################################################################
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 323, in <module>
+    main()
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 256, in main
+    gen(c)
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\run_pareval_batch.py", line 102, in gen
+    raw = client.chat(model_id, cell.messages, max_tokens=budget)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\t-bvangala\Downloads\SC26_AgenticAI4HPC\harness\nrp_llm.py", line 123, in chat
+    raise RuntimeError(f"nrp chat failed after {retries} attempts: {last_err}")
+RuntimeError: nrp chat failed after 6 attempts: Request timed out.
+18 cells to run (skipped 36 done)
+generating round 0 for all cells ...
+# gemma exit=1
