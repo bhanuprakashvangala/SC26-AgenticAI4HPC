@@ -44,6 +44,30 @@ differential gate, watch how often L1 and L2 diverge for your models and tasks, 
 keep the gate where they do.
 
 \vspace{3pt}
+\noindent\textbf{From gate to reward: a two-axis verification-guided objective.}
+The acceptance gate an agent applies is also the reward a verifiable-reward RL loop would
+optimize~\cite{rlvr,grpo}, and this is where the gameability becomes concrete rather than
+theoretical. Treating the set of accepted programs for a task as the candidates a
+generator (or a best-of-$N$/GRPO selection) chooses among, a correctness-only reward is
+\emph{indifferent}: every robust program scores identically, so selection realizes only
+the mean of the pool, whereas a two-axis reward (correctness times realized efficiency)
+selects the fastest. On the \NmultiTask{} tasks with more than one accepted program, this
+gap is not small: a correctness-only reward realizes a mean \RewardRandom{}$\times$
+8-thread speedup against the two-axis reward's \RewardTwoAxis{}$\times$
+(\RewardGainPct{}\% more), and on the most dispersed task it is the difference between a
+\RewardSpreadLo{}$\times$ and a \RewardSpreadHi{}$\times$ program the correctness reward
+rates equally. The constructive consequence, which we frame as future
+work, is a \emph{second verification gate}: a performance gate whose termination
+condition is a self-speedup target and which, crucially, is guarded by the correctness
+gate---every optimization must remain robust---so that optimizing the two-axis reward can
+never be satisfied by fast-but-wrong code. This is the natural home for the negative
+result: once correctness saturates, the verification-guided objective should carry the
+second axis. We distinguish this from prior performance-rewarded HPC code
+generation~\cite{pareval}, which optimizes speed directly; our point is narrower and about
+the \emph{reward's specification}---a single-axis correctness reward is gameable by
+construction, and we measure what that costs.
+
+\vspace{3pt}
 \noindent\textbf{Threats to validity.}
 \emph{Construct.} We study OpenMP shared-memory parallelism over
 ParEval's tasks and serial references; distributed-memory (MPI) and GPU (CUDA)

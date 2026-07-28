@@ -5,3 +5,13 @@ openai>=1.40          # Azure OpenAI client (keyless, Entra ID bearer tokens)
 matplotlib>=3.8       # ablation figure in analyze_pareval.py
 numpy>=1.26           # pulled in by matplotlib; array helpers
 # Model access uses the Azure CLI (`az`); install it separately and run `az login`.
+
+# --- GRPO/RLVR training (harness/grpo_train.py) -- GPU host only, install as needed:
+# trl>=0.12           # GRPOTrainer (Group Relative Policy Optimization)
+# transformers>=4.45  # policy model loading
+# accelerate>=0.34    # multi-GPU / mixed precision
+# peft>=0.13          # LoRA adapters for cheaper post-training
+# datasets>=3.0       # prompt dataset
+# torch>=2.4          # match your CUDA build
+# Best-of-N (harness/best_of_n.py) and the VG-RLPT agent (harness/vg_agent.py) need
+# only the base deps above plus model + verify-backend access.
