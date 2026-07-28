@@ -17,6 +17,9 @@
 
 \definecolor{codebg}{gray}{0.96}
 \definecolor{OliveGreen}{HTML}{1E6F3C}
+% Visible placeholder for numbers to be filled in after the live runs (E2-E4).
+% Search the source for \xx (or the red "xx" in the PDF) to find every open slot.
+\newcommand{\xx}{\textcolor{red}{\textbf{xx}}}
 \lstset{
   basicstyle=\ttfamily\footnotesize,
   backgroundcolor=\color{codebg},
@@ -96,6 +99,7 @@ engineering, differential testing, correctness, data races
 \input{sections/3_metric}
 \input{sections/4_setup}
 \input{sections/5_results}
+\input{sections/5b_experiments}
 \input{sections/6_discussion}
 \input{sections/2_related_work}
 \input{sections/7_conclusion}
