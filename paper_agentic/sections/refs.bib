@@ -1,0 +1,474 @@
+%% ---------- Benchmarks and HPC code models ----------
+ 
+@inproceedings{pareval,
+  author    = {Nichols, Daniel and Davis, Joshua H. and Xie, Zhaojun and Rajaram, Arjun and Bhatele, Abhinav},
+  title     = {Can Large Language Models Write Parallel Code?},
+  booktitle = {Proc. 33rd Int. Symp. High-Performance Parallel and Distributed Computing (HPDC)},
+  pages     = {281--294},
+  year      = {2024},
+  doi       = {10.1145/3625549.3658689},
+  note      = {arXiv:2401.12554}
+}
+ 
+@inproceedings{parevalrepo,
+  author    = {Davis, Joshua H. and Nichols, Daniel and Khillan, Ishan and Bhatele, Abhinav},
+  title     = {{ParEval-Repo}: A Benchmark Suite for Evaluating {LLMs} with Repository-level {HPC} Translation Tasks},
+  booktitle = {Proc. 54th Int. Conf. Parallel Processing (ICPP)},
+  year      = {2025}
+}
+%% NOT RE-VERIFIED
+ 
+@inproceedings{hpccoder,
+  author    = {Nichols, Daniel and Marathe, Aniruddha and Menon, Harshitha and Gamblin, Todd and Bhatele, Abhinav},
+  title     = {{HPC-Coder}: Modeling Parallel Programs Using Large Language Models},
+  booktitle = {ISC High Performance 2024 Research Paper Proceedings (39th Int. Conf.)},
+  pages     = {1--12},
+  publisher = {IEEE},
+  year      = {2024}
+}
+ 
+@inproceedings{hpccoderv2,
+  author    = {Chaturvedi, Aman and Nichols, Daniel and Singh, Siddharth and Bhatele, Abhinav},
+  title     = {{HPC-Coder-V2}: Studying Code {LLMs} Across Low-Resource Parallel Languages},
+  booktitle = {ISC High Performance},
+  year      = {2025},
+  note      = {arXiv:2412.15178}
+}
+%% NOT RE-VERIFIED
+ 
+@inproceedings{ompgpt,
+  author    = {Chen, Le and Bhattacharjee, Arijit and Ahmed, Nesreen and Hasabnis, Niranjan and Oren, Gal and Vo, Vy and Jannesari, Ali},
+  title     = {{OMPGPT}: A Generative Pre-trained Transformer Model for {OpenMP}},
+  booktitle = {Euro-Par},
+  year      = {2024}
+}
+%% NOT RE-VERIFIED
+ 
+%% FIXED: title was truncated/paraphrased; author list was "and others";
+%%        added full author list, pages, DOI. Real venue is IPDPS 2025.
+@inproceedings{pcebench,
+  author    = {Chen, Le and Ahmed, Nesreen K. and Capot{\u{a}}, Mihai and Willke, Ted and Hasabnis, Niranjan and Jannesari, Ali},
+  title     = {{PCEBench}: A Multi-Dimensional Benchmark for Evaluating Large Language Models in Parallel Code Generation},
+  booktitle = {IEEE Int. Parallel and Distributed Processing Symp. (IPDPS)},
+  pages     = {546--557},
+  year      = {2025},
+  doi       = {10.1109/IPDPS64566.2025.00056}
+}
+ 
+%% FIXED: author list was missing H. Estes; added arXiv id.
+@inproceedings{predictperf,
+  author    = {Bolet, Gregory and Georgakoudis, Giorgis and Menon, Harshitha and Parasyris, Konstantinos and Hasabnis, Niranjan and Estes, Hayden and Cameron, Kirk W. and Oren, Gal},
+  title     = {Can {LLMs} Predict Parallel Code Performance?},
+  booktitle = {Proc. 34th Int. Symp. High-Performance Parallel and Distributed Computing (HPDC)},
+  year      = {2025},
+  doi       = {10.1145/3731545.3743645},
+  note      = {arXiv:2505.03988}
+}
+ 
+ 
+%% ---------- Closest prior art: correct-but-serial ----------
+ 
+%% FIXED: this was the single worst entry. The title in your file
+%%        ("PARACODEX: Evaluating Agentic Parallel Code Generation")
+%%        does not exist. arXiv:2601.04327 is a profiling-guided GPU
+%%        offload agent, now published at ACL 2026. Four of the seven
+%%        given names were also wrong (Ariel->Erel, Tal->Tomer,
+%%        Ahmad->Lian, Yaniv->Tom). Canonical BibTeX from ACL Anthology:
+@inproceedings{paracodex,
+  author    = {Kaplan, Erel and Bitan, Tomer and Ghrayeb, Lian and Chen, Le and Yotam, Tom and Hasabnis, Niranjan and Oren, Gal},
+  title     = {{ParaCodex}: A Profiling-Guided Autonomous Coding Agent for Reliable Parallel Code Generation and Translation},
+  booktitle = {Proc. 64th Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  pages     = {16113--16136},
+  address   = {San Diego, California, United States},
+  publisher = {Association for Computational Linguistics},
+  month     = jul,
+  year      = {2026},
+  doi       = {10.18653/v1/2026.acl-long.732},
+  note      = {arXiv:2601.04327}
+}
+ 
+ 
+%% ---------- RL with correctness and/or performance rewards ----------
+ 
+%% FIXED: there is no paper called "Reinforcement Learning from
+%%        Verifiable Rewards" by Lambert et al. RLVR was introduced in
+%%        Tulu 3. Key renamed to `tulu3`; cite `deepseekr1` alongside it
+%%        if you want the reasoning-RL half of the claim.
+@article{tulu3,
+  author  = {Lambert, Nathan and Morrison, Jacob and Pyatkin, Valentina and Huang, Shengyi and Ivison, Hamish and Brahman, Faeze and Miranda, Lester James V. and Liu, Alisa and Dziri, Nouha and Lyu, Shane and Gu, Yuling and Malik, Saumya and Graf, Victoria and Hwang, Jena D. and Yang, Jiangjiang and Le Bras, Ronan and Tafjord, Oyvind and Wilhelm, Chris and Soldaini, Luca and Smith, Noah A. and Wang, Yizhong and Dasigi, Pradeep and Hajishirzi, Hannaneh},
+  title   = {{T\"ULU} 3: Pushing Frontiers in Open Language Model Post-Training},
+  journal = {arXiv preprint arXiv:2411.15124},
+  year    = {2024}
+}
+ 
+%% ADDED: the other standard RLVR citation, now peer-reviewed in Nature.
+@article{deepseekr1,
+  author  = {Guo, Daya and Yang, Dejian and Zhang, Haowei and Song, Junxiao and others},
+  title   = {{DeepSeek-R1} Incentivizes Reasoning in {LLMs} through Reinforcement Learning},
+  journal = {Nature},
+  volume  = {645},
+  number  = {8081},
+  pages   = {633--638},
+  year    = {2025},
+  doi     = {10.1038/s41586-025-09422-z},
+  note    = {arXiv:2501.12948}
+}
+ 
+@article{grpo,
+  author  = {Shao, Zhihong and Wang, Peiyi and Zhu, Qihao and Xu, Runxin and Song, Junxiao and Bi, Xiao and others},
+  title   = {{DeepSeekMath}: Pushing the Limits of Mathematical Reasoning in Open Language Models},
+  journal = {arXiv preprint arXiv:2402.03300},
+  year    = {2024}
+}
+ 
+%% FIXED: added missing arXiv id (2503.14476).
+@article{dapo,
+  author  = {Yu, Qiying and others},
+  title   = {{DAPO}: An Open-Source {LLM} Reinforcement Learning System at Scale},
+  journal = {arXiv preprint arXiv:2503.14476},
+  year    = {2025}
+}
+ 
+%% FIXED: added missing arXiv id (2503.20783).
+@article{drgrpo,
+  author  = {Liu, Zichen and others},
+  title   = {Understanding {R1}-Zero-Like Training: A Critical Perspective},
+  journal = {arXiv preprint arXiv:2503.20783},
+  year    = {2025}
+}
+ 
+%% FIXED: added full author list and arXiv id (2507.18071).
+@article{gspo,
+  author  = {Zheng, Chujie and Liu, Shixuan and Li, Mingze and Chen, Xiong-Hui and Yu, Bowen and Gao, Chang and Dang, Kai and Liu, Yuqiong and Men, Rui and Yang, An and Zhou, Jingren and Lin, Junyang},
+  title   = {Group Sequence Policy Optimization},
+  journal = {arXiv preprint arXiv:2507.18071},
+  year    = {2025}
+}
+ 
+%% FIXED: had no authors and a truncated title. Paper is real.
+@article{threeops,
+  author  = {Bay, Yong Yi and Yearick, Kathleen A.},
+  title   = {{GRPO}, {Dr.\ GRPO}, and {DAPO} Are Three Operations on One Number: The Group-Standard-Deviation Identity},
+  journal = {arXiv preprint arXiv:2607.00152},
+  year    = {2026}
+}
+ 
+%% FIXED: first author was "Bagirov, Ilia" -> Farid Bagirov; added the
+%%        remaining four authors. arXiv title uses British "Optimisation".
+@article{bonmaxk,
+  author  = {Bagirov, Farid and Arkhipov, Mikhail and Sycheva, Ksenia and Glukhov, Evgeniy and Bogomolov, Egor},
+  title   = {The Best of {N} Worlds: Aligning Reinforcement Learning with Best-of-{N} Sampling via max@k Optimisation},
+  journal = {arXiv preprint arXiv:2510.23393},
+  year    = {2025}
+}
+ 
+%% FIXED: added authors, pages, arXiv id.
+@inproceedings{rewardunlikely,
+  author    = {He, Andre Wang and Fried, Daniel and Welleck, Sean},
+  title     = {Rewarding the Unlikely: Lifting {GRPO} Beyond Distribution Sharpening},
+  booktitle = {Proc. 2025 Conf. Empirical Methods in Natural Language Processing (EMNLP)},
+  pages     = {25548--25560},
+  address   = {Suzhou, China},
+  publisher = {Association for Computational Linguistics},
+  year      = {2025},
+  note      = {arXiv:2506.02355}
+}
+ 
+@article{acecode,
+  author  = {Yang, Chengran and Kang, Hong Jin and Shi, Jieke and Lo, David},
+  title   = {{ACECode}: A Reinforcement Learning Framework for Aligning Code Efficiency and Correctness in Code Language Models},
+  journal = {arXiv preprint arXiv:2412.17264},
+  year    = {2024}
+}
+%% NOT RE-VERIFIED
+ 
+%% FIXED: title is "for Generating CUDA Kernels", not "for Writing";
+%%        added full author list.
+@article{kevin,
+  author  = {Baronio, Carlo and Marsella, Pietro and Pan, Ben and Guo, Simon and Alberti, Silas},
+  title   = {{Kevin}: Multi-Turn {RL} for Generating {CUDA} Kernels},
+  journal = {arXiv preprint arXiv:2507.11948},
+  year    = {2025}
+}
+ 
+@article{cudal1,
+  author  = {Li, Xiaoya and Sun, Xiaofei and Wang, Albert and Li, Jiwei and Shum, Chris},
+  title   = {{CUDA-L1}: Improving {CUDA} Optimization via Contrastive Reinforcement Learning},
+  journal = {arXiv preprint arXiv:2507.14111},
+  year    = {2025}
+}
+ 
+%% FIXED: your title ("CUDAPerf: Multi-Turn Reinforcement Learning with
+%%        Performance-Aware Rewards") is not the paper's title, and the
+%%        entry had no authors. CudaPerf is the system name; the paper
+%%        title is below.
+@article{cudaperf,
+  author  = {Mahmud, Quazi Ishtiaque and Ahmed, Nesreen K. and Jannesari, Ali},
+  title   = {Multi-turn {RL} with Structural and Performance Aware Rewards for {CUDA} Kernel Generation},
+  journal = {arXiv preprint arXiv:2607.20908},
+  year    = {2026}
+}
+ 
+%% FIXED: title was "...Agentic Reinforcement Learning for Kernel
+%%        Generation"; actual is "...Agentic RL for High-Performance
+%%        CUDA Kernel Generation". Added authors.
+@article{cudaagent,
+  author  = {Dai, Weinan and Wu, Hanlin and Yu, Qiying and Gao, Huan-ang and Li, Jiahao and Jiang, Chengquan and Lou, Weiqiang and Song, Yufan and Yu, Hongli and Chen, Jiaze and Ma, Wei-Ying and Zhang, Ya-Qin and Liu, Jingjing and Wang, Mingxuan and Liu, Xin and Zhou, Hao},
+  title   = {{CUDA} Agent: Large-Scale Agentic {RL} for High-Performance {CUDA} Kernel Generation},
+  journal = {arXiv preprint arXiv:2602.24286},
+  year    = {2026}
+}
+ 
+%% FIXED: three given names were wrong (Jiaxin->Jiefu, Sarthak->Sapana,
+%%        Shuo->Shuai).
+@article{maxcode,
+  author  = {Ou, Jiefu and Chaudhary, Sapana and Bostrom, Kaj and Weir, Nathaniel and Zhang, Shuai and Rangwala, Huzefa and Karypis, George},
+  title   = {{MaxCode}: A Max-Reward Reinforcement Learning Framework for Automated Code Optimization},
+  journal = {arXiv preprint arXiv:2601.05475},
+  year    = {2026}
+}
+ 
+@article{rlpf,
+  author  = {Nichols, Daniel and Polasam, Pranav and Menon, Harshitha and Marathe, Aniruddha and Gamblin, Todd and Bhatele, Abhinav},
+  title   = {Performance-Aligned {LLMs} for Generating Fast Code},
+  journal = {arXiv preprint arXiv:2404.18864},
+  year    = {2024}
+}
+%% NOT RE-VERIFIED
+ 
+%% FIXED: first two given names were wrong (Kenta->Ryo Mikasa,
+%%        Akihiro->Shun-ichiro Hayashi).
+@article{realmachine,
+  author  = {Mikasa, Ryo and Hayashi, Shun-ichiro and Mukunoki, Daichi and Hoshino, Tetsuya and Katagiri, Takahiro},
+  title   = {Improving {HPC} Code Generation Capability of {LLMs} via Online Reinforcement Learning with Real-Machine Benchmark Rewards},
+  journal = {arXiv preprint arXiv:2602.12049},
+  year    = {2026}
+}
+ 
+@article{perftools,
+  author  = {Nichols, Daniel and Parasyris, Konstantinos and Jekel, Charles and Bhatele, Abhinav and Menon, Harshitha},
+  title   = {Integrating Performance Tools in Model Reasoning for {GPU} Kernel Optimization},
+  journal = {arXiv preprint arXiv:2510.17158},
+  year    = {2025}
+}
+%% NOT RE-VERIFIED
+ 
+ 
+%% ---------- Reward hacking / verifier gaming ----------
+ 
+%% FIXED: added authors. Note the paper's own capitalization is
+%%        "RLVR can Lead to Reward Hacking".
+@article{gamingverifiers,
+  author  = {Helff, Lukas and Delfosse, Quentin and Steinmann, David and H{\"a}rle, Ruben and Shindo, Hikaru and Schramowski, Patrick and Stammer, Wolfgang and Kersting, Kristian and Friedrich, Felix},
+  title   = {{LLMs} Gaming Verifiers: {RLVR} can Lead to Reward Hacking},
+  journal = {arXiv preprint arXiv:2604.15149},
+  year    = {2026}
+}
+ 
+%% FIXED: added author (single-author paper).
+@article{fuzzverifiers,
+  author  = {Ray, Jaideep},
+  title   = {Before the Model Learns the Bug: Fuzzing {RLVR} Verifiers},
+  journal = {arXiv preprint arXiv:2606.01066},
+  year    = {2026}
+}
+ 
+%% FIXED: title abbreviated "RL"; the paper spells out "Reinforcement
+%%        Learning". Added authors.
+@article{rubrichack,
+  author  = {Wang, Xuekang and Hao, Zhuoyuan and Hou, Shuo and Peng, Hao and Li, Juanzi and Wang, Xiaozhi},
+  title   = {Reproducing, Analyzing, and Detecting Reward Hacking in Rubric-Based Reinforcement Learning},
+  journal = {arXiv preprint arXiv:2606.04923},
+  year    = {2026}
+}
+ 
+ 
+%% ---------- Agentic HPC ----------
+ 
+%% FIXED: added full author list; corrected venue to the CLUSTER
+%%        Workshops proceedings with pages and DOI.
+@inproceedings{lassi,
+  author    = {Dearing, Matthew T. and Tao, Yiheng and Wu, Xingfu and Lan, Zhiling and Taylor, Valerie},
+  title     = {{LASSI}: An {LLM}-Based Automated Self-Correcting Pipeline for Translating Parallel Scientific Codes},
+  booktitle = {2024 IEEE Int. Conf. Cluster Computing Workshops (CLUSTER Workshops)},
+  pages     = {136--143},
+  year      = {2024},
+  doi       = {10.1109/CLUSTERWorkshops61563.2024.00029},
+  note      = {arXiv:2407.01638}
+}
+ 
+%% FIXED: added authors. NOTE the title below is v3 (the current
+%%        version); v1/v2 were titled "MARCO: A Multi-Agent System for
+%%        Optimizing HPC Code Generation Using Large Language Models".
+%%        Pick one and be consistent.
+@article{marco,
+  author  = {Rahman, Asif and Cvetkovic, Veljko and Reece, Kathleen and Walters, Aidan and Hassan, Yasir and Tummeti, Aneesh and Torres, Bryan and Cooney, Denise and Ellis, Margaret and Nikolopoulos, Dimitrios S.},
+  title   = {{MARCO}: Multi-Agent Code Optimization with Real-Time Knowledge Integration for High-Performance Computing},
+  journal = {arXiv preprint arXiv:2505.03906},
+  year    = {2025}
+}
+ 
+%% FIXED: title was wrong ("An Agent-Based Auto-Tuning System for HPC").
+%%        Added authors.
+@article{vibecodehpc,
+  author  = {Hayashi, Shun-ichiro and Morita, Koki and Mukunoki, Daichi and Hoshino, Tetsuya and Katagiri, Takahiro},
+  title   = {{VibeCodeHPC}: An Agent-Based Iterative Prompting Auto-Tuner for {HPC} Code Generation Using {LLMs}},
+  journal = {arXiv preprint arXiv:2510.00031},
+  year    = {2025}
+}
+ 
+%% FIXED: title was shortened to "UniPar: Unified Parallelization with
+%%        Language Models"; author list was "Bitan, Tal and others" --
+%%        the first author is Tomer Bitan. Added pages and DOI.
+@inproceedings{unipar,
+  author    = {Bitan, Tomer and Kadosh, Tal and Kaplan, Erel and Meiri, Shira and Chen, Le and Morales, Peter and Hasabnis, Niranjan and Oren, Gal},
+  title     = {{UniPar}: A Unified {LLM}-Based Framework for Parallel and Accelerated Code Translation in {HPC}},
+  booktitle = {2025 IEEE High Performance Extreme Computing Conf. (HPEC)},
+  pages     = {1--9},
+  year      = {2025},
+  doi       = {10.1109/HPEC67600.2025.11196677},
+  note      = {arXiv:2509.12136}
+}
+ 
+%% FIXED: title was wrong ("Evolutionary Parallel Code Generation with
+%%        Verification Feedback"). Added authors; also appeared at
+%%        ICML 2026. This paper is closer to yours than the old entry
+%%        suggested -- it repairs code using compiler, DYNAMIC RACE
+%%        DETECTOR, and profiler feedback, and evaluates on ParEval.
+@article{parevo,
+  author  = {Yang, Liu and Nie, Zeyu and Liu, Andrew and Zou, Felix and Altinb{\"u}ken, Deniz and Yazdanbakhsh, Amir and Liu, Quanquan C.},
+  title   = {{ParEVO}: Synthesizing Code for Irregular Data: High-Performance Parallelism through Agentic Evolution},
+  journal = {arXiv preprint arXiv:2603.02510},
+  year    = {2026}
+}
+ 
+ 
+%% ---------- Correctness and efficiency evaluation ----------
+ 
+@article{humaneval,
+  author  = {Chen, Mark and Tworek, Jerry and Jun, Heewoo and others},
+  title   = {Evaluating Large Language Models Trained on Code},
+  journal = {arXiv preprint arXiv:2107.03374},
+  year    = {2021}
+}
+ 
+@inproceedings{evalplus,
+  author    = {Liu, Jiawei and Xia, Chunqiu Steven and Wang, Yuyao and Zhang, Lingming},
+  title     = {Is Your Code Generated by {ChatGPT} Really Correct? Rigorous Evaluation of Large Language Models for Code Generation},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2023},
+  note      = {arXiv:2305.01210}
+}
+ 
+@inproceedings{swebench,
+  author    = {Jimenez, Carlos E. and Yang, John and Wettig, Alexander and Yao, Shunyu and Pei, Kexin and Press, Ofir and Narasimhan, Karthik},
+  title     = {{SWE-bench}: Can Language Models Resolve Real-World {GitHub} Issues?},
+  booktitle = {Int. Conf. Learning Representations (ICLR)},
+  year      = {2024}
+}
+ 
+%% FIXED: added full author list and arXiv id. Venue is the NeurIPS 2024
+%%        Datasets and Benchmarks Track.
+@inproceedings{effibench,
+  author    = {Huang, Dong and Qing, Yuhao and Shang, Weiyi and Cui, Heming and Zhang, Jie M.},
+  title     = {{EffiBench}: Benchmarking the Efficiency of Automatically Generated Code},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS), Datasets and Benchmarks Track},
+  year      = {2024},
+  note      = {arXiv:2402.02037}
+}
+ 
+%% FIXED: added full author list and arXiv id.
+@inproceedings{enamel,
+  author    = {Qiu, Ruizhong and Zeng, Weiliang Will and Ezick, James and Lott, Christopher and Tong, Hanghang},
+  title     = {How Efficient is {LLM}-Generated Code? A Rigorous and High-Standard Benchmark},
+  booktitle = {Int. Conf. Learning Representations (ICLR)},
+  year      = {2025},
+  note      = {arXiv:2406.06647}
+}
+ 
+@inproceedings{kernelbench,
+  author    = {Ouyang, Anne and Guo, Simon and Arora, Simran and Zhang, Alex L. and Hu, William and R{\'e}, Christopher and Mirhoseini, Azalia},
+  title     = {{KernelBench}: Can {LLMs} Write Efficient {GPU} Kernels?},
+  booktitle = {Int. Conf. Machine Learning (ICML)},
+  year      = {2025},
+  note      = {arXiv:2502.10517}
+}
+ 
+ 
+%% ---------- Race detection ----------
+%% All four below match the publisher records; unchanged.
+ 
+@inproceedings{tsan,
+  author    = {Serebryany, Konstantin and Iskhodzhanov, Timur},
+  title     = {{ThreadSanitizer}: Data Race Detection in Practice},
+  booktitle = {Workshop on Binary Instrumentation and Applications},
+  year      = {2009}
+}
+ 
+@inproceedings{archer,
+  author    = {Atzeni, Simone and Gopalakrishnan, Ganesh and Rakamaric, Zvonimir and Ahn, Dong H. and Laguna, Ignacio and Schulz, Martin and Lee, Gregory L. and Protze, Joachim and M{\"u}ller, Matthias S.},
+  title     = {{ARCHER}: Effectively Spotting Data Races in Large {OpenMP} Applications},
+  booktitle = {IEEE Int. Parallel and Distributed Processing Symp. (IPDPS)},
+  year      = {2016}
+}
+ 
+@inproceedings{romp,
+  author    = {Gu, Yizi and Mellor-Crummey, John},
+  title     = {Dynamic Data Race Detection for {OpenMP} Programs},
+  booktitle = {Int. Conf. High Performance Computing, Networking, Storage and Analysis (SC)},
+  year      = {2018}
+}
+ 
+@inproceedings{sword,
+  author    = {Atzeni, Simone and Gopalakrishnan, Ganesh and Rakamaric, Zvonimir and Laguna, Ignacio and Lee, Gregory L. and Ahn, Dong H.},
+  title     = {{SWORD}: A Bounded Memory-Overhead Detector of {OpenMP} Data Races in Production Runs},
+  booktitle = {IEEE Int. Parallel and Distributed Processing Symp. (IPDPS)},
+  year      = {2018}
+}
+ 
+@inproceedings{ompracer,
+  author    = {Swain, Bradley and Li, Yanze and Liu, Peiming and Laguna, Ignacio and Georgakoudis, Giorgis and Huang, Jeff},
+  title     = {{OMPRacer}: A Scalable and Precise Static Race Detector for {OpenMP} Programs},
+  booktitle = {Int. Conf. High Performance Computing, Networking, Storage and Analysis (SC)},
+  year      = {2020}
+}
+ 
+ 
+%% ---------- Testing methodology ----------
+ 
+@article{difftesting,
+  author  = {McKeeman, William M.},
+  title   = {Differential Testing for Software},
+  journal = {Digital Technical Journal},
+  volume  = {10},
+  number  = {1},
+  pages   = {100--107},
+  year    = {1998}
+}
+ 
+@article{metamorphic,
+  author  = {Chen, Tsong Yueh and Kuo, Fei-Ching and Liu, Huai and Poon, Pak-Lok and Towey, Dave and Tse, T. H. and Zhou, Zhi Quan},
+  title   = {Metamorphic Testing: A Review of Challenges and Opportunities},
+  journal = {ACM Computing Surveys},
+  volume  = {51},
+  number  = {1},
+  year    = {2018}
+}
+ 
+ 
+%% ---------- Self-repair loops ----------
+ 
+@inproceedings{selfdebug,
+  author    = {Chen, Xinyun and Lin, Maxwell and Sch{\"a}rli, Nathanael and Zhou, Denny},
+  title     = {Teaching Large Language Models to Self-Debug},
+  booktitle = {Int. Conf. Learning Representations (ICLR)},
+  year      = {2024}
+}
+ 
+@inproceedings{reflexion,
+  author    = {Shinn, Noah and Cassano, Federico and Berman, Edward and Gopinath, Ashwin and Narasimhan, Karthik and Yao, Shunyu},
+  title     = {{Reflexion}: Language Agents with Verbal Reinforcement Learning},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2023}
+}
+ 

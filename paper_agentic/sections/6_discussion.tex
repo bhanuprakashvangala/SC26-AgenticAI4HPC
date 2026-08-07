@@ -1,0 +1,89 @@
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{What this changes for people building HPC coding agents}
+
+Three recommendations follow directly from the measurements, and none of them
+require adopting our reward.
+
+\emph{Do not use output equivalence as an acceptance gate for parallel code.}
+It is necessary and it is not sufficient, and the gap is not small: in our
+accepted set it is the difference between \SpeedMin$\times$ and
+\SpeedMax$\times$. If an agent's loop terminates when the output matches, it
+will terminate on programs that are slower than the code they replaced.
+
+\emph{Report the target machine alongside any performance reward.} Correctness
+is portable; efficiency is not. A model post-trained against measured speedup
+on one architecture has been aligned to that architecture. We measure on a
+single machine and do not claim cross-architecture transfer; characterizing how
+far the efficiency ranking of these programs moves across machines is the
+natural next experiment, and one the released harness is built to run.
+
+\emph{Report reward resolution.} If the noise floor of the timing harness
+exceeds the differences the reward is meant to express, the reward is noise.
+This is cheap to measure and, as far as we can tell, not currently reported by
+anyone---ourselves included, until we looked.
+
+\subsection{Why we do not claim a trained policy}
+
+The natural completion of this work is to post-train under both rewards and
+show that the correctness-only arm drifts toward correct-but-serial code while
+the gated arm does not. We deliberately do not report such a run.
+
+The reason is that we would rather state a falsifiable prediction than a
+rushed training curve. The prediction is specific: under GRPO with
+$\Rcorr$ on a task distribution with $p_t$ near saturation, mean sampled
+efficiency should be flat or declining while correctness stays constant,
+because Proposition~\ref{prop:collapse} says most groups contribute no
+gradient and Proposition~\ref{prop:degeneracy} says the surviving gradient
+does not point toward parallelism. Under $\Rgate$ on the same distribution,
+correctness should be preserved and mean sampled efficiency should rise. The
+harness we release computes both rewards over sampled completions and is
+wired for this experiment; we state the prediction so that it can be checked
+against us.
+
+\subsection{Threats to validity}
+
+\paragraph*{The proposition may look trivial}
+It is elementary once stated, and we say so in Section~\ref{sec:degeneracy}.
+Our defence is that it is not stated anywhere in the RLVR-for-HPC literature
+we surveyed, that correctness-only verifiable rewards are being deployed for
+this exact task, and that the corollary about signal collapse
+(Proposition~\ref{prop:collapse}) and the measured cost
+(Section~\ref{sec:results-bakeoff}) are not elementary.
+
+\paragraph*{Prior art on the phenomenon}
+PARACODEX~\cite{paracodex} documented correctness-passing code that executes
+serially, in a GPU-offload setting, in January 2026. We do not claim priority
+on the observation. We claim the reframing---from an agent and harness defect
+to be patched, to the location of the reward function's optimum---and the CPU
+thread-scaling instantiation.
+
+\paragraph*{Benchmark difficulty}
+A reviewer may object that correctness looks saturated only because
+\ParEval's OpenMP tasks are idiomatic. We agree, and it is the argument: on
+tasks where correctness saturates, a correctness-only reward has nothing left
+to teach, while the efficiency axis remains wide open. The objection would
+bite if the efficiency spread narrowed on easy tasks. It does not---the
+\SpeedMin$\times$--\SpeedMax$\times$ range is measured on exactly these
+saturated tasks.
+
+\paragraph*{Best-of-$N$ is not GRPO}
+Our selection analysis captures the selection component of group-relative
+optimization and not its distribution-sharpening
+effect~\cite{bonmaxk,rewardunlikely}. We label it as a proxy wherever it
+appears and read it as a lower bound.
+
+\paragraph*{Scope}
+Shared-memory OpenMP, \NTasks\ \ParEval\ tasks, a single measurement machine, one
+serial reference per task. We do not generalize to MPI, CUDA, or Kokkos,
+although the argument in Section~\ref{sec:degeneracy} does not depend on the
+programming model and the harness supports them. The hazard list underlying
+\PG\ is not exhaustive, and we expect it to be extended---that is the point of
+releasing it.
+
+\paragraph*{The reference defines the task}
+Each task has a single serial reference. Being sequential it is immune to the
+bugs under study, but it also fixes what the task means; the scan-family
+ambiguity in Section~\ref{sec:results-saturation} is a concrete instance of
+that fixing being contestable.

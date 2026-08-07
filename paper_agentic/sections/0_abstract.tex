@@ -1,0 +1,33 @@
+\begin{abstract}
+Agentic systems now write HPC code and decide for themselves when it is done:
+the agent generates an OpenMP kernel, runs it, compares the output against a
+trusted serial reference, and accepts the draft if they agree. That
+acceptance test is the agent's objective---and, increasingly, the verifiable
+reward a post-training loop optimizes. We show it is the wrong one, and we
+build the agent that sees why.
+
+Our contribution is a \emph{grounded agentic diagnostician} for parallel code:
+an LLM that answers questions about a generated program only by calling real
+measurement tools---compile, sweep thread counts, time against the serial
+reference, check for races---and a \emph{performance-critic} agent that refuses
+any claim a measurement does not support, the way a grounded explanation refuses
+an attribution it cannot compute. Building it forced the finding that motivates
+it. Delete every \texttt{\#pragma omp} from a correct program and it stays
+correct, so the serial program sits in the argmax of the acceptance reward and
+the reward is invariant to the one property the code exists for; we make this
+executable, and \SPRate\% of the programs our verifier accepted survive
+mechanical pragma-stripping at exactly zero reward cost. The blind spot is
+large: across \NAccepted\ accepted programs, all scored identically correct,
+measured 8-thread self-speedup runs from \SpeedMin$\times$ to \SpeedMax$\times$,
+and \BelowSerialRate\% are \emph{slower} than the serial code they replace. On
+saturated correctness (\PassRate\% single-shot) a group-relative estimator sees
+zero reward variance on a predicted \DeadGroupCorrEight\% of groups and learns
+nothing. We release \PG, an adversarial suite of \NHacks\ candidates encoding
+the known ways to defeat a parallel-code reward, and score six reward
+formulations against it: a multiplicative efficiency gate
+$\Rgate=\mathbb{1}[\text{correct}]\cdot\min(S_n/n,1)$ resists every
+reward-\emph{shape} attack and is defeated only by attacks that corrupt the
+measurement itself, which no reward shape can fix. The diagnostician is exactly
+a deployable form of that gate: a critic that grounds every parallelism claim in
+a measurement, and reports an honest null when it cannot.
+\end{abstract}

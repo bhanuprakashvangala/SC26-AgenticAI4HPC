@@ -1,0 +1,96 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{amsthm}
+\usepackage{url}
+\graphicspath{{figs/}{./}}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\definecolor{codebg}{gray}{0.96}
+\definecolor{OliveGreen}{HTML}{1E6F3C}
+
+% \xx flags any number still awaiting data (should be none in the final build).
+\newcommand{\xx}{\textcolor{red}{\textbf{xx}}}
+% \note renders an editorial margin note in draft; make it invisible for a clean build.
+\newcommand{\note}[1]{}
+
+% theorem-like environments used by the degeneracy section
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{plain}
+\newtheorem{proposition}{Proposition}
+\newtheorem{observation}{Observation}
+
+% --- symbol macros the prose relies on ---
+\newcommand{\Rgate}{R_{\mathrm{gate}}}
+\newcommand{\Rcorr}{R_{\mathrm{corr}}}
+\newcommand{\serialproj}{\pi_{\mathrm{serial}}}
+\newcommand{\PG}{\textsc{ParallelGate}}
+\newcommand{\ParEval}{\textsc{ParEval}}
+\newcommand{\SP}{serial projection}
+
+% --- real numbers derived from the frozen run pool (agent/compute_numbers.py) ---
+\input{numbers_filled}
+\input{hacks_numbers}
+\input{numbers_e7}
+% fallback: define any macro not yet backed by data as a visible red xx (providecommand
+% never overrides the real values loaded above) -- these are the E6/optional quantities
+% we did not run, flagged so no fabricated number can slip in.
+\input{numbers_fallback}
+
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  breaklines=true,
+  columns=fullflexible,
+  frame=none,
+  xleftmargin=4pt,
+  aboveskip=4pt,belowskip=4pt,
+}
+
+\begin{document}
+
+\title{Correct but Not Parallel:\\
+A Grounded Agentic Critic for LLM-Generated HPC Code}
+
+\author{\IEEEauthorblockN{Anonymous Author(s)}
+\IEEEauthorblockA{\textit{Affiliation withheld for review} \\
+Location withheld \\
+email withheld}}
+
+\maketitle
+
+\input{sections/0_abstract}
+
+\begin{IEEEkeywords}
+agentic AI, HPC, code generation, OpenMP, grounded diagnosis, verifiable rewards,
+RLVR, reward hacking, strong scaling, evaluation, reliability
+\end{IEEEkeywords}
+
+\input{sections/1_introduction}
+\input{sections/1b_system}
+\input{sections/2_degeneracy}
+\input{sections/3_reward}
+\input{sections/4_setup}
+\input{sections/5_results}
+\input{sections/6_discussion}
+\input{sections/7_related}
+\input{sections/8_conclusion}
+
+\section*{Acknowledgments}
+\note{fill in funding / compute allocations}
+
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+
+\input{sections/9_artifact}
+
+\end{document}

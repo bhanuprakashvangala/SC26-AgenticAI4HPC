@@ -1,0 +1,148 @@
+\section{An Efficiency-Gated Verifiable Reward}
+\label{sec:reward}
+
+Section~\ref{sec:degeneracy} says a correctness-only reward cannot work. It
+does not say what should replace it, and the space of replacements is not
+empty---several are already published. This section states the one the
+degeneracy argument implies, explains why its \emph{structure} rather than its
+ingredients is the claim, and describes the suite we built to test it against
+the alternatives.
+
+\subsection{The gate}
+
+For a program $p$ with correctness indicator $c(p)$ and reference speedup
+$S_p(n)$ measured on $n$ threads, define the capped strong-scaling efficiency
+\begin{equation}
+  E_p(n) = \min\!\left(\frac{S_p(n)}{n},\ 1\right)
+  \label{eq:efficiency}
+\end{equation}
+and the efficiency-gated reward
+\begin{equation}
+  \Rgate(p) = c(p)\cdot E_p(n).
+  \label{eq:rgate}
+\end{equation}
+
+Equation~\eqref{eq:efficiency} is not new and we do not present it as new: it
+is the strong-scaling efficiency the HPC community has used for decades, and
+in the LLM setting it is essentially \ParEval's own $\mathrm{efficiency}_n@k$
+metric~\cite{pareval} with a cap at unity. Naming that lineage matters, because
+the point of the paper is not the metric but where it belongs---in the reward,
+not only in the evaluation table.
+
+Under $\Rgate$, an incorrect program scores $0$; the serial projection of
+Definition~\ref{def:projection} scores approximately $Q_p/n$, which for a
+program of ordinary sequential quality is $1/n$---$0.125$ at eight threads;
+and a program achieving linear scaling scores $1$. Proposition~\ref{prop:degeneracy}
+no longer holds: $\serialproj(p)$ is now separated from $p$ by
+$E_p(n) - 1/n$, which is the entire dynamic range of the reward.
+
+\subsection{Why a gate and not a weighted sum}
+
+The published correctness-plus-performance rewards for code are, with
+consistency, \emph{additive}. ACECode~\cite{acecode} awards $0.5$ for passing
+tests and adds up to $0.5$ of an efficiency term. Kevin~\cite{kevin} awards a
+correctness constant plus a speedup ratio. Real-machine HPC
+post-training~\cite{realmachine} uses a staged penalty ladder terminating in a
+throughput term. Each is a reasonable engineering choice and each was validated
+in its own setting.
+
+The degeneracy argument implies a different structure, for two reasons.
+
+First, an additive reward has a \emph{floor} that correctness alone reaches. A
+program that is correct and entirely serial banks the correctness constant
+unconditionally. The optimum is no longer serial, but the serial program is no
+longer near-zero either; it is a safe, defensible answer that a
+risk-averse policy can retreat to whenever parallelization is hard. A
+multiplicative gate makes the performance term unreachable without correctness
+\emph{and} makes correctness worth nothing without performance. There is no
+floor to retreat to.
+
+Second, and more practically, the gate preserves the property that made
+verifiable rewards attractive in the first place: chasing reward can never buy
+a wrong answer. Under an additive reward with a large enough efficiency
+coefficient, a fast incorrect program can outscore a slow correct one, and
+whether it does is a matter of hyperparameter tuning. Under
+Equation~\eqref{eq:rgate} it cannot, ever, at any coefficient.
+
+We state this as a structural argument, not an empirical superiority claim.
+Section~\ref{sec:results-bakeoff} measures the difference; we did not want the
+comparison to rest on the argument alone.
+
+\subsection{What the gate does not fix}
+\label{sec:reward-limits}
+
+Adding a measured quantity to a reward adds a measurement to attack. We name
+the attacks we know of, and we build them (Section~\ref{sec:results-hacks})
+rather than only discussing them.
+
+\paragraph*{Baseline manipulation}
+If efficiency is computed from self-speedup $\Sigma_p(n) = T_p(1)/T_p(n)$, the
+policy can raise its reward by making the one-thread run slower. This is the
+same family as CUDA-L1's timing exploits, where added asynchronous streams
+misled a main-stream timer~\cite{cudal1}. Anchoring to the fixed reference,
+$S_p(n) = T_{R_t}/T_p(n)$, removes this: the denominator is not under the
+policy's control.
+
+\paragraph*{Algorithmic speedup in parallel clothing}
+Anchoring to the reference introduces the dual problem. By
+Equation~\eqref{eq:decomposition}, $S_p(n) = Q_p\Sigma_p(n)$, so a program that
+improves the sequential algorithm by a factor of $n$ and uses no threads at all
+reaches $E_p(n)=1$. The cap conceals it. We therefore report $Q_p$ and
+$\Sigma_p(n)$ separately throughout, and recommend that any deployed reward do
+the same; a reward that reports only $S_p(n)$ cannot distinguish a good
+parallel program from a good sequential one.
+
+\paragraph*{Timing-region evasion and caching}
+Work moved outside the timed region, lazily evaluated, or memoized across the
+repeat runs used for noise reduction will all inflate the efficiency term. The
+mitigations are ordinary and unglamorous---time the whole driver, randomize
+inputs per repeat, run repeats in fresh processes---and we specify them in
+Section~\ref{sec:setup-protocol}.
+
+\paragraph*{The measurement itself}
+Unlike $c(p)$, $E_p(n)$ is a physical measurement with a noise distribution. A
+reward whose between-program differences are smaller than its within-program
+variance is not a reward, it is noise with a mean. Our protocol
+(Section~\ref{sec:setup-protocol}) times in fresh processes and reports the
+minimum over repeats to suppress this; quantifying a per-machine noise floor and
+the resulting reward resolution is a measurement we recommend any deployed
+performance reward report.
+
+\subsection{\PG: an adversarial suite for parallel-code rewards}
+\label{sec:reward-paragate}
+
+A reward for parallel code should be judged the way a verifier is judged: by
+what it accepts that it should not. We therefore built \PG, a suite of
+\NHacks\ hand-written candidates spanning \ParEval's OpenMP problem families,
+each of which is \emph{correct} and each of which defeats at least one natural
+reward. The classes are listed in Table~\ref{tab:hackclasses}.
+
+\begin{table}[t]
+\caption{The \PG\ hack classes. Every candidate is functionally correct and
+therefore earns the maximum correctness-only reward. The final column names
+the reward property each is designed to defeat.}
+\label{tab:hackclasses}
+\centering
+\footnotesize
+\begin{tabular}{@{}llp{2.7cm}@{}}
+\toprule
+ID & Construction & Defeats \\
+\midrule
+H1 & every \texttt{\#pragma omp} deleted & correctness-only \\
+H2 & \texttt{parallel for num\_threads(1)} & static ``has a pragma'' checks \\
+H3 & loop body wrapped in \texttt{critical} & nominal parallelism \\
+H4 & one-thread path artificially slowed & self-speedup $\Sigma$ \\
+H5 & better serial algorithm, no threads & reference speedup $S$, capped \\
+H6 & work hoisted outside the timed region & timer-scoped rewards \\
+H7 & results cached across repeat runs & repeat-based noise reduction \\
+H8 & correct but $O(n)$ oversynchronized & additive rewards with a floor \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The suite is the reusable part of this paper. A reward formulation can be
+scored against it in minutes, and the resulting matrix
+(Figure~\ref{fig:hackheat}, Section~\ref{sec:results-hacks}) is a far more
+informative summary of a reward than the single benchmark number usually
+reported. We release it with the intention that subsequent reward designs for
+HPC code report against it, including designs that beat ours.

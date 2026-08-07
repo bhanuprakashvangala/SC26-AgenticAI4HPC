@@ -1,0 +1,81 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+%Template version as of 6/27/2024
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{listings}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\definecolor{codebg}{gray}{0.96}
+\definecolor{OliveGreen}{HTML}{1E6F3C}
+
+\newcommand{\xx}{\textcolor{red}{\textbf{xx}}}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  breaklines=true,
+  columns=fullflexible,
+  frame=none,
+  xleftmargin=4pt,
+  aboveskip=4pt,belowskip=4pt,
+}
+
+
+\begin{document}
+
+\title{Correct but Not Parallel: Efficiency-Gated Verifiable Rewards for Agent-Generated OpenMP}
+
+
+\author{\IEEEauthorblockN{Anonymous Author(s)}
+\IEEEauthorblockA{\textit{Affiliation withheld for review} \\
+Location withheld \\
+email withheld}}
+
+%% \author{\IEEEauthorblockN{1\textsuperscript{st} Given Name Surname}
+%% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+%% \textit{name of organization (of Aff.)}\\
+%% City, Country \\
+%% email address or ORCID}
+%% \and
+%% \IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
+%% \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+%% \textit{name of organization (of Aff.)}\\
+%% City, Country \\
+%% email address or ORCID}
+%% }
+
+\maketitle
+ 
+\input{source/sections/0_abstract}
+ 
+\begin{IEEEkeywords}
+verifiable rewards, RLVR, GRPO, reward design, reward hacking, OpenMP,
+parallel code generation, agentic AI, HPC, strong scaling, benchmarking
+\end{IEEEkeywords}
+ 
+\input{source/sections/1_introduction}
+\input{source/sections/2_degeneracy}
+\input{source/sections/3_reward}
+\input{source/sections/4_setup}
+\input{source/sections/5_results}
+\input{source/sections/6_discussion}
+\input{source/sections/7_related}
+\input{source/sections/8_conclusion}
+ 
+\section*{Acknowledgments}
+\note{fill in funding / compute allocations}
+ 
+\balance
+\bibliographystyle{IEEEtran}
+\bibliography{refs}
+ 
+\input{source/sections/9_artifact}
+
+\end{document}

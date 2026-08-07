@@ -1,0 +1,131 @@
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Tasks}
+
+We build on \ParEval~\cite{pareval}, the standard benchmark for LLM-generated
+parallel code, which comprises 420 problems spanning 12 problem
+families---sort, scan, dense and sparse linear algebra, search, reduce,
+histogram, stencil, graph, geometry, Fourier transform, and transform---across
+seven execution models. We use the OpenMP subset (\NTasks\ tasks), reusing
+\ParEval's function-completion prompts, its randomized-input drivers, and most
+importantly its serial reference implementations as the trusted answer.
+Because the reference is a plain sequential program it is immune to the
+parallel hazards under study, which makes it an honest oracle; because the
+drivers supply many random inputs, a program cannot pass on one lucky example.
+
+Each prompt states what to compute and gives the function signature, but never
+says how to parallelize it. The model chooses the synchronization strategy, and
+therefore the scaling behaviour, on its own.
+
+\subsection{Models: who wrote the code}
+
+\NModels\ closed and \NOpenModels\ open-weight models generated every program we
+study, and we chose them so that the degeneracy could not be waved away as an
+artifact of a weak generator. Four are reached through a single uniform API and
+belong to one frontier family, which lets us watch the reward behave across a
+capability jump rather than at a single point: \texttt{gpt-5.4}, a current
+frontier general model, and \texttt{gpt-5.2}, the generation before it;
+\texttt{gpt-5.3-codex}, a code-specialized sibling of exactly the kind an HPC
+team reaches for; and \texttt{gpt-5.4-pro}, a higher-reasoning variant that
+spends more test-time compute per program. If the reward's blind spot were
+something a stronger or more code-aware model simply grows out of, this
+panel---two generations, a code specialist, and a reasoning model---is where we
+would expect to see it close.
+
+It does not. Every model in the panel, the strongest included, emits programs
+whose measured 8-thread speedup ranges from barely above serial to near-linear
+and earns full reward for all of them: \texttt{gpt-5.4-pro}, our
+higher-reasoning variant, produces accepted programs spanning $1.9\times$ to
+$7.4\times$, each scored identically correct. The reward's inability to tell a
+$2\times$ program from a $7\times$ one is a property of what it measures, not of
+who is answering. To make that point robust to the specific provider, we add an
+open-weights panel of
+\NOpenModels\ models (\texttt{gpt-oss}, \texttt{minimax-m2},
+\texttt{qwen3-small}) served on a research cluster, spanning a wide capability
+gradient. Holding the benchmark, harness, and prompts fixed across all seven,
+any difference we report is attributable to the reward, not to model style.
+
+\subsection{The frozen sample pool}
+
+All reward comparisons in Section~\ref{sec:results} are computed offline over
+a single frozen pool: \NSamples\ generated programs from \NRuns\ runs, each
+annotated with its compile status and per-configuration correctness verdict,
+and---for the \NAccepted\ programs the verifier accepted---wall time at every
+thread count and repetition. Freezing the pool has three
+benefits. Every reward formulation is scored on identical samples, so
+differences are attributable to the reward and not to decoding. The comparison
+costs no inference budget and can be rerun by anyone. And the pool is
+releasable in a way that a live API-backed experiment is not.
+
+\subsection{Hardware, compilers, and measurement protocol}
+\label{sec:setup-protocol}
+
+Compilation and execution run on a single dedicated multi-core node with no
+other tenants, using GCC with \texttt{-O3 -fopenmp}. We deliberately hold the
+machine fixed so that every reward comparison is made under identical timing
+conditions; because efficiency is architecture-relative, we treat cross-machine
+transfer of the efficiency reward as an explicit limitation
+(Section~\ref{sec:discussion}) rather than a result.
+
+Timing follows a protocol designed to make the efficiency term reproducible
+enough to be a reward rather than an anecdote:
+
+\begin{itemize}
+  \item Thread counts $n \in \{1,2,4,\dots,\NThreadsMax\}$, with
+  \texttt{OMP\_PROC\_BIND=close} and \texttt{OMP\_PLACES=cores}. Pinning is
+  reported because unpinned runs are not comparable across repeats.
+  \item \NRepeats\ repetitions per configuration, each in a \emph{fresh
+  process} with a freshly randomized input, which closes the cross-run caching
+  channel (H7).
+  \item The first repetition is discarded as warm-up; we report the minimum
+  wall time over the remainder.
+  \item The timed region encloses the entire driver call, not a region the
+  generated code controls, which closes the timing-region channel (H6).
+  \item Input sizes chosen large enough to amortize thread-creation overhead,
+  because small inputs systematically hide poor scaling.
+\end{itemize}
+
+\subsection{Correctness verification}
+
+Correctness is adjudicated by \ParEval's driver, extended with a differential
+sweep: the generated function is compiled against the serial reference, fed
+identical random inputs, and checked at every thread count and repetition
+rather than once. A program counts as correct only if it agrees everywhere.
+Disagreement that varies with thread count, or flickers between repetitions at
+a fixed thread count, is reported as the signature of a race or an
+order-dependent bug.
+
+As an independent instrument we cross-check every accepted program with
+Archer~\cite{archer}, the LLVM happens-before OpenMP race detector built on
+ThreadSanitizer~\cite{tsan} with OMPT annotations, which reasons about actual
+synchronization rather than observed output. Where the two instruments agree,
+the claim rests on more than output differencing.
+
+\subsection{Reward formulations compared}
+
+Table~\ref{tab:rewards} lists the formulations scored over the frozen pool. All
+are implemented in the released harness; where a published reward has
+hyperparameters we use the values from the original paper and say so.
+
+\begin{table}[t]
+\caption{Reward formulations scored over the frozen sample pool.}
+\label{tab:rewards}
+\centering
+\footnotesize
+\begin{tabular}{@{}llp{2.7cm}@{}}
+\toprule
+ID & Form & Source \\
+\midrule
+R1 & $c$ & correctness-only (the default) \\
+R2 & $c(0.5 + 0.5\,\hat{E})$ & ACECode~\cite{acecode} (additive) \\
+R3 & $c(0.3 + \hat{E})/1.3$ & Kevin~\cite{kevin} (corr.+speedup) \\
+R5 & $c\cdot\min(S_p(n)/n,1)$ & \textbf{this work} (reference-anchored gate) \\
+R5b & $c\cdot\min(\Sigma_p(n)/n,1)$ & ablation (self-anchored) \\
+R5c & $c\cdot\min(S_p(n)/n,1)\cdot\min(\Sigma_p(n)/2,1)$ & ablation (decomposed) \\
+\bottomrule
+\end{tabular}
+\\[2pt]
+{\footnotesize $\hat{E}=\min(S_p(n)/n,1)$; $S_p$ uses the trusted serial
+reference, $\Sigma_p$ the program's own one-thread time.}
+\end{table}

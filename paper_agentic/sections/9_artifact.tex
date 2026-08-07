@@ -1,0 +1,82 @@
+\appendices
+
+\section*{Artifact Description}
+\addcontentsline{toc}{section}{Artifact Description}
+
+\subsection*{Summary of the experiments reported}
+
+The paper reports six experiment groups: (E1) serial-projection preservation,
+(E2) efficiency spread across accepted programs, (E3) dead-group fraction under
+group-relative estimators, (E4) reward bake-off by matched selection, (E5) the
+\PG\ hack matrix, and (E6) the measurement protocol on a single machine.
+
+Crucially, \textbf{E1--E5 require no model inference and no multi-core node.}
+They are computed offline over a frozen pool of \NSamples\ generated programs
+released with the artifact, each annotated with compile status,
+per-configuration correctness, and wall time at every thread count. A reviewer
+reproduces every reward comparison, every figure, and the entire grounded
+diagnostician on a laptop in minutes; the timings themselves (E2/E6) were
+produced once on a multi-core node and are shipped as data.
+
+\subsection*{Artifact availability}
+
+Repository and a tagged, DOI-archived release are provided; the review copy is
+anonymized. The code is released under a permissive open-source license, and the
+frozen pool---generations, verdicts, and timings---is included so that no API
+access is required to recompute the paper.
+
+\subsection*{Software dependencies}
+
+\begin{itemize}
+  \item Compiler: GCC with \texttt{-O3 -fopenmp}
+  \item Race detection: LLVM Archer (ThreadSanitizer + OMPT)
+  \item Python 3.12; dependencies pinned in \texttt{requirements.txt}
+        (the grounded diagnostician additionally uses the \texttt{openai}
+        client with Entra ID bearer-token auth)
+\end{itemize}
+
+\subsection*{Hardware}
+
+Timings were collected on a single dedicated multi-core x86-64 node with
+threads pinned (\texttt{OMP\_PROC\_BIND=close}, \texttt{OMP\_PLACES=cores}) and
+no other tenants. Reproducing E1--E5 requires no special hardware.
+
+\subsection*{Repository layout}
+
+\begin{itemize}
+  \item \texttt{agent/diag\_core.py} --- the grounded evidence layer over the
+        frozen pool (Section~\ref{sec:system})
+  \item \texttt{agent/hpc\_agent.py} --- the tool-calling diagnostician and the
+        performance-critic
+  \item \texttt{agent/parallel\_gate.py} --- \PG\ scoring; produces
+        Figure~\ref{fig:hackheat}
+  \item \texttt{agent/compute\_numbers.py} --- recomputes E1--E4; writes the
+        paper's \texttt{numbers} macros
+  \item \texttt{agent/make\_paper\_figs.py} --- regenerates
+        Figures~\ref{fig:projection}, \ref{fig:scaling}, \ref{fig:deadgroups}
+  \item \texttt{results/} --- the frozen pool: \texttt{scaling.jsonl} (per-thread
+        timings), \texttt{pareval\_runs.jsonl} (verdicts),
+        \texttt{sanitizer.jsonl}, \texttt{oversync.jsonl}
+  \item \texttt{logs/pareval/generations/} --- every generated program with its
+        prompt and transcript
+\end{itemize}
+
+\subsection*{Reproduction steps}
+
+\begin{enumerate}
+  \item \texttt{python -m agent.compute\_numbers --write} --- recompute E1--E4
+        offline; writes \texttt{numbers\_filled.tex}.
+  \item \texttt{python -m agent.parallel\_gate --write} --- score \PG;
+        writes \texttt{hacks\_numbers.tex} and \texttt{table\_hacks.tex}.
+  \item \texttt{python -m agent.make\_paper\_figs} --- regenerate all figures.
+  \item \texttt{pdflatex main} --- rebuild the PDF. \textbf{Every number comes
+        from a generated macro file; there are no literal numbers in the section
+        sources.}
+\end{enumerate}
+
+\subsection*{Expected variation}
+
+E1--E5 are deterministic given the frozen pool and reproduce exactly. The raw
+timings underlying E2 are machine-dependent: absolute speedups will differ on
+other hardware, but the \emph{ordering} claims and the serial-projection result
+should not.

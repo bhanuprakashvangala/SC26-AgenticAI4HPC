@@ -1,0 +1,37 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+Agentic AI will help HPC only as much as we can trust what it writes once that
+code runs in parallel, and what we trust is whatever the checker says. So the
+checker is the thing to get right---first because an agent accepts its own work
+on it, and increasingly because it is the reward a post-training loop
+optimizes.
+
+We showed that the natural checker for parallel code cannot serve as that
+reward. Delete every OpenMP directive from a correct program and it stays
+correct, so the serial program sits in the reward's argmax and the reward is
+invariant to the property the task exists to obtain. We made this executable:
+\SPRate\% of the programs our verifier accepted survive mechanical
+pragma-stripping at exactly zero reward cost. We measured what the reward
+cannot see: accepted programs span \SpeedMin$\times$ to \SpeedMax$\times$ on
+eight threads, \BelowSerialRate\% of them slower in parallel than serially, all
+scored identically. And we showed the failure is not only at the optimum but at
+the gradient: with correctness saturated at \PassRate\%, group-relative
+estimators see zero reward variance on \DeadGroupCorrEight\% of sampled groups
+and learn nothing at all.
+
+The fix that follows from the argument is structural rather than additive.
+Gating a capped strong-scaling efficiency behind correctness removes the serial
+program from the optimum, restores the gradient, and---unlike a weighted
+sum---makes it impossible for chasing reward to buy a wrong answer. Under
+matched selection it recovers \BoNGain\% more speedup than a correctness-only
+objective from the same samples. It is not immune to attack, and we say which
+of our own \NHacks\ adversarial candidates defeat it and why.
+
+We release \PG---the adversarial suite, the reward implementations, the frozen
+sample pool with timings, the prompts, and the transcripts---so that the reward
+comparisons in this paper can be recomputed without an inference budget, and so
+that the next reward design for HPC code can be tested rather than proposed.
+Correctness stopped being the binding constraint. Correct-but-not-parallel is
+where this code now fails, and a reward that looks only at the output cannot
+see it.

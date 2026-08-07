@@ -1,0 +1,86 @@
+%% ---------- Scale of the study ----------
+\newcommand{\NTasks}{\xx}              % 16 in the previous run; target 60 (full ParEval OpenMP)
+\newcommand{\NModels}{\xx}             % 4 frontier
+\newcommand{\NOpenModels}{\xx}         % open-weights panel size
+\newcommand{\NRuns}{\xx}               % 174 previously
+\newcommand{\NSamples}{\xx}            % total sampled programs in the frozen pool
+\newcommand{\NAccepted}{\xx}           % 63 previously -- programs that pass correctness AND were timed
+\newcommand{\NThreadsMax}{\xx}         % 8
+\newcommand{\NRepeats}{\xx}            % timing repeats per configuration
+
+%% ---------- E1: serial projection (the degeneracy, measured) ----------
+\newcommand{\SPRate}{\xx}              % % of accepted programs whose pragma-stripped version still passes
+\newcommand{\SPNum}{\xx}               % count
+\newcommand{\SPDen}{\xx}               % denominator
+\newcommand{\SPRewardDeltaCorr}{\xx}   % mean change in R_corr under stripping -- expect exactly 0.00
+\newcommand{\SPRewardDeltaGate}{\xx}   % mean change in R_gate under stripping -- expect large and negative
+\newcommand{\SPGateFloor}{\xx}         % mean R_gate of the stripped programs (~1/n = 0.125 at n=8)
+
+%% ---------- E2: argmax contamination ----------
+\newcommand{\SpeedMin}{\xx}            % 0.33 previously
+\newcommand{\SpeedMax}{\xx}            % 7.9 previously
+\newcommand{\SpeedMedian}{\xx}
+\newcommand{\ContamRate}{\xx}          % % accepted with capped efficiency E_8 < 0.25
+\newcommand{\BelowSerialRate}{\xx}     % % accepted with S_8 < 1 (SLOWER than serial, still reward 1)
+\newcommand{\BelowTwoXRate}{\xx}       % % accepted with self-speedup < 2x on 8 threads
+\newcommand{\WorstTaskRange}{\xx}      % e.g. "0.33x--6.5x" -- widest within-task spread
+
+%% ---------- E3: signal collapse under group-relative estimators ----------
+\newcommand{\PassRate}{\xx}            % pooled single-shot pass rate; 82.8\% previously
+\newcommand{\DeadGroupCorrFour}{\xx}   % % zero-variance groups under R_corr, k=4
+\newcommand{\DeadGroupCorrEight}{\xx}  % k=8
+\newcommand{\DeadGroupCorrSixteen}{\xx}% k=16
+\newcommand{\DeadGroupGateFour}{\xx}   % same under R_gate, k=4
+\newcommand{\DeadGroupGateEight}{\xx}
+\newcommand{\DeadGroupGateSixteen}{\xx}
+\newcommand{\SatTaskFrac}{\xx}         % % of tasks with per-task pass rate exactly 1
+\newcommand{\MeanGroupStdCorr}{\xx}    % mean within-group reward std, R_corr
+\newcommand{\MeanGroupStdGate}{\xx}    % mean within-group reward std, R_gate
+
+%% ---------- E4: reward bake-off ----------
+\newcommand{\BoNCorr}{\xx}             % realized mean 8-thread speedup, correctness-only; 3.54 previously
+\newcommand{\BoNGate}{\xx}             % realized under the gate; 4.23 previously
+\newcommand{\BoNOracle}{\xx}           % oracle-best
+\newcommand{\BoNGain}{\xx}             % % improvement; +19\% previously
+\newcommand{\RegretCorr}{\xx}          % selection regret, correctness-only
+\newcommand{\RegretGate}{\xx}
+\newcommand{\RegretAdd}{\xx}           % ACECode-style additive
+\newcommand{\RegretSpeedup}{\xx}       % Kevin-style correctness+raw speedup
+\newcommand{\RhoCorr}{\xx}             % Spearman rho(reward, true speedup), correctness-only
+\newcommand{\RhoAdd}{\xx}
+\newcommand{\RhoGate}{\xx}
+\newcommand{\PoolsDiffering}{\xx}      % # of pools where the two rewards select different programs
+
+%% ---------- E5: reward-hack suite ----------
+\newcommand{\NHacks}{\xx}              % number of adversarial candidates (48 in the earlier plan)
+\newcommand{\HackCorrPassRate}{\xx}    % % of hacks that earn maximal R_corr -- expect ~100
+\newcommand{\HackGatePassRate}{\xx}    % % that earn high R_gate -- expect small
+\newcommand{\HackGateSurvivors}{\xx}   % which hack classes still defeat the gate (H4/H5 expected)
+
+%% ---------- E6: robustness / measurement ----------
+\newcommand{\CVMedian}{\xx}            % median coefficient of variation of wall-time across repeats
+\newcommand{\NoiseFloor}{\xx}          % % relative timing noise floor
+\newcommand{\RewardResolution}{\xx}    % % of program pairs separable above the noise floor
+\newcommand{\RankInstability}{\xx}     % mean rank change of E_8 across architectures
+\newcommand{\NArch}{\xx}               % number of architectures
+\newcommand{\ArchA}{\xx}               % e.g. "Intel Xeon Platinum 8380"
+\newcommand{\ArchB}{\xx}               % e.g. "NVIDIA Grace / AMD EPYC 7763"
+\newcommand{\CompilerList}{\xx}        % e.g. "GCC 13.2, LLVM 18, Intel oneAPI 2024.2"
+
+%% ---------- E7: correctness saturation (the premise, not the finding) ----------
+\newcommand{\RobustL}{\xx}             % single-shot robust correctness; 82.8\% previously
+\newcommand{\RobustLone}{\xx}          % with execute-once repair; 87.9\% previously
+\newcommand{\RobustLtwo}{\xx}          % with differential verify; 87.9\% previously
+\newcommand{\RobustDelta}{\xx}         % +0.0 previously
+\newcommand{\PairedCells}{\xx}         % 58 previously
+\newcommand{\PairedDisagree}{\xx}      % 0 previously
+\newcommand{\RobustExclScan}{\xx}      % 94.4\% previously (excluding the scan specification artifact)
+\newcommand{\NRaces}{\xx}              % races found by Archer in accepted programs; 0 previously
+\newcommand{\NRacesOpen}{\xx}          % races shipped by the open-weights panel; 1 previously
+\newcommand{\RuleOfThreeN}{\xx}        % N validation runs the rule-of-three bound is taken over -- STATE IT
+\newcommand{\RuleOfThreeBound}{\xx}    % resulting upper bound on latent failure probability
+
+%% ---------- Wilson CIs (write as "[a, b]") ----------
+\newcommand{\CIL}{\xx}
+\newcommand{\CILone}{\xx}
+\newcommand{\CILtwo}{\xx}
