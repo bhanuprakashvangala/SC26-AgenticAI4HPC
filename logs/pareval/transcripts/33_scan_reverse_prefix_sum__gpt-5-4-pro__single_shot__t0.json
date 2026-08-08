@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-10T20:43:33.403404+00:00",
+  "ts": "2026-08-08T07:26:41.986544+00:00",
   "task": "33_scan_reverse_prefix_sum",
   "type": "scan",
   "model": "gpt-5.4-pro",
@@ -22,5 +22,6 @@
   ],
   "final_code": "",
   "final_verdict": "CRASH",
+  "sweep": "",
   "robust": false
 }

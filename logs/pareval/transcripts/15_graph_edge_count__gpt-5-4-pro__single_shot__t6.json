@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-07T23:00:53.963162+00:00",
+  "task": "15_graph_edge_count",
+  "type": "graph",
+  "model": "gpt-5.4-pro",
+  "condition": "single_shot",
+  "trial": 6,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCount(std::vector<int> const& A, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint edgeCount(std::vector<int> const& A, size_t N) {\n    unsigned long long total = 0ULL;\n\n    #pragma omp parallel for reduction(+:total) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        const size_t row_base = static_cast<size_t>(i) * N;\n        for (size_t j = 0; j < N; ++j) {\n            total += (A[row_base + j] != 0);\n        }\n    }\n\n    return static_cast<int>(total);\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint edgeCount(std::vector<int> const& A, size_t N) {\n    unsigned long long total = 0ULL;\n\n    #pragma omp parallel for reduction(+:total) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        const size_t row_base = static_cast<size_t>(i) * N;\n        for (size_t j = 0; j < N; ++j) {\n            total += (A[row_base + j] != 0);\n        }\n    }\n\n    return static_cast<int>(total);\n}",
+  "final_verdict": "PARSE_ERR",
+  "sweep": "",
+  "robust": false
+}

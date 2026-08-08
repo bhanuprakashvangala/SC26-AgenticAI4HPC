@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T07:26:41.943302+00:00",
+  "task": "33_scan_reverse_prefix_sum",
+  "type": "scan",
+  "model": "gpt-5.4",
+  "condition": "single_shot",
+  "trial": 2,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use OpenMP to compute in parallel.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const int n = static_cast<int>(x.size());\n    output.resize(n);\n    if (n == 0) return;\n\n    int num_threads = 1;\n\n    #pragma omp parallel\n    {\n        #pragma omp single\n        {\n            num_threads = omp_get_num_threads();\n        }\n    }\n\n    std::vector<long long> block_sums(num_threads, 0);\n    std::vector<long long> block_offsets(num_threads, 0);\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        const int nt = omp_get_num_threads();\n\n        const int start = (tid * n) / nt;\n        const int end   = ((tid + 1) * n) / nt;\n\n        long long local_sum = 0;\n        for (int i = start; i < end; ++i) {\n            local_sum += x[i];\n            output[i] = static_cast<int>(local_sum);\n        }\n\n        block_sums[tid] = local_sum;\n\n        #pragma omp barrier\n\n        #pragma omp single\n        {\n            long long offset = 0;\n            for (int t = 0; t < nt; ++t) {\n                block_offsets[t] = offset;\n                offset += block_sums[t];\n            }\n        }\n\n        const long long add = block_offsets[tid];\n        for (int i = start; i < end; ++i) {\n            output[i] = static_cast<int>(output[i] + add);\n        }\n    }\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const int n = static_cast<int>(x.size());\n    output.resize(n);\n    if (n == 0) return;\n\n    int num_threads = 1;\n\n    #pragma omp parallel\n    {\n        #pragma omp single\n        {\n            num_threads = omp_get_num_threads();\n        }\n    }\n\n    std::vector<long long> block_sums(num_threads, 0);\n    std::vector<long long> block_offsets(num_threads, 0);\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        const int nt = omp_get_num_threads();\n\n        const int start = (tid * n) / nt;\n        const int end   = ((tid + 1) * n) / nt;\n\n        long long local_sum = 0;\n        for (int i = start; i < end; ++i) {\n            local_sum += x[i];\n            output[i] = static_cast<int>(local_sum);\n        }\n\n        block_sums[tid] = local_sum;\n\n        #pragma omp barrier\n\n        #pragma omp single\n        {\n            long long offset = 0;\n            for (int t = 0; t < nt; ++t) {\n                block_offsets[t] = offset;\n                offset += block_sums[t];\n            }\n        }\n\n        const long long add = block_offsets[tid];\n        for (int i = start; i < end; ++i) {\n            output[i] = static_cast<int>(output[i] + add);\n        }\n    }\n}",
+  "final_verdict": "NOT_ROBUST",
+  "sweep": "t1=0/2 t2=0/2 t4=0/2 t8=0/2",
+  "robust": false
+}

@@ -3,7 +3,7 @@
 
 Agentic AI will help HPC only as much as we can trust what it writes once that
 code runs in parallel, and what we trust is whatever the checker says. So the
-checker is the thing to get right---first because an agent accepts its own work
+checker is the thing to get right - first because an agent accepts its own work
 on it, and increasingly because it is the reward a post-training loop
 optimizes.
 
@@ -22,14 +22,15 @@ and learn nothing at all.
 
 The fix that follows from the argument is structural rather than additive.
 Gating a capped strong-scaling efficiency behind correctness removes the serial
-program from the optimum, restores the gradient, and---unlike a weighted
-sum---makes it impossible for chasing reward to buy a wrong answer. Under
-matched selection it recovers \BoNGain\% more speedup than a correctness-only
-objective from the same samples. It is not immune to attack, and we say which
+program from the optimum, restores the gradient, and - unlike a weighted
+sum - makes it impossible for chasing reward to buy a wrong answer. Under
+matched selection it recovers speedup a correctness-only objective cannot,
+which ties every candidate at $1$ and so must choose blindly among programs that
+in fact span below-serial to near-linear. It is not immune to attack, and we say which
 of our own \NHacks\ adversarial candidates defeat it and why.
 
-We release \PG---the adversarial suite, the reward implementations, the frozen
-sample pool with timings, the prompts, and the transcripts---so that the reward
+We release \PG - the adversarial suite, the reward implementations, the frozen
+sample pool with timings, the prompts, and the transcripts - so that the reward
 comparisons in this paper can be recomputed without an inference budget, and so
 that the next reward design for HPC code can be tested rather than proposed.
 Correctness stopped being the binding constraint. Correct-but-not-parallel is

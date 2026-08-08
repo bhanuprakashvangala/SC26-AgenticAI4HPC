@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T02:25:01.649486+00:00",
+  "task": "17_graph_highest_degree",
+  "type": "graph",
+  "model": "gpt-5.2",
+  "condition": "single_shot",
+  "trial": 6,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <algorithm>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) return 0;\n    // Expect A.size() == N*N; if not, compute over the available prefix safely.\n    const size_t total = A.size();\n    const size_t NN = N * N;\n    const size_t usable = std::min(total, NN);\n\n    int globalMax = 0;\n\n    #pragma omp parallel for reduction(max:globalMax) schedule(static)\n    for (size_t i = 0; i < N; ++i) {\n        int deg = 0;\n        const size_t rowStart = i * N;\n        if (rowStart >= usable) {\n            // No data for this row\n            globalMax = std::max(globalMax, 0);\n            continue;\n        }\n        const size_t rowEnd = std::min(rowStart + N, usable);\n        for (size_t j = rowStart; j < rowEnd; ++j) {\n            // For undirected graphs, degree is count of neighbors; ignore self-loop on diagonal.\n            const size_t col = j - rowStart;\n            if (col != i && A[j] != 0) ++deg;\n        }\n        if (deg > globalMax) globalMax = deg; // safe due to reduction(max)\n    }\n\n    return globalMax;\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <algorithm>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) return 0;\n    // Expect A.size() == N*N; if not, compute over the available prefix safely.\n    const size_t total = A.size();\n    const size_t NN = N * N;\n    const size_t usable = std::min(total, NN);\n\n    int globalMax = 0;\n\n    #pragma omp parallel for reduction(max:globalMax) schedule(static)\n    for (size_t i = 0; i < N; ++i) {\n        int deg = 0;\n        const size_t rowStart = i * N;\n        if (rowStart >= usable) {\n            // No data for this row\n            globalMax = std::max(globalMax, 0);\n            continue;\n        }\n        const size_t rowEnd = std::min(rowStart + N, usable);\n        for (size_t j = rowStart; j < rowEnd; ++j) {\n            // For undirected graphs, degree is count of neighbors; ignore self-loop on diagonal.\n            const size_t col = j - rowStart;\n            if (col != i && A[j] != 0) ++deg;\n        }\n        if (deg > globalMax) globalMax = deg; // safe due to reduction(max)\n    }\n\n    return globalMax;\n}",
+  "final_verdict": "PARSE_ERR",
+  "sweep": "",
+  "robust": false
+}

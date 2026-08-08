@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T08:01:49.607237+00:00",
+  "task": "35_search_search_for_last_struct_by_key",
+  "type": "search",
+  "model": "gpt-5.2",
+  "condition": "single_shot",
+  "trial": 5,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Book {\n   std::string title;\n   int pages;\n};\n\n/* Return the index of the last Book item in the vector books where Book.pages is less than 100.\n   Use OpenMP to search in parallel.\n\t Example:\n\n   input: [{title=\"Green Eggs and Ham\", pages=72}, {title=\"gulliver's travels\", pages=362}, {title=\"Stories of Your Life\", pages=54}, {title=\"Hamilton\", pages=818}]\n   output: 2\n*/\nsize_t findLastShortBook(std::vector<Book> const& books) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <string>\n#include <cstddef>\n#include <algorithm>\n#include <omp.h>\n\nstruct Book {\n    std::string title;\n    int pages;\n};\n\nsize_t findLastShortBook(std::vector<Book> const& books) {\n    const size_t n = books.size();\n    if (n == 0) return static_cast<size_t>(-1);\n\n    size_t globalBest = static_cast<size_t>(-1);\n\n    #pragma omp parallel\n    {\n        size_t localBest = static_cast<size_t>(-1);\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < n; ++i) {\n            if (books[i].pages < 100) {\n                if (localBest == static_cast<size_t>(-1) || i > localBest) {\n                    localBest = i;\n                }\n            }\n        }\n\n        #pragma omp critical\n        {\n            if (localBest != static_cast<size_t>(-1)) {\n                if (globalBest == static_cast<size_t>(-1) || localBest > globalBest) {\n                    globalBest = localBest;\n                }\n            }\n        }\n    }\n\n    return globalBest;\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <string>\n#include <cstddef>\n#include <algorithm>\n#include <omp.h>\n\nstruct Book {\n    std::string title;\n    int pages;\n};\n\nsize_t findLastShortBook(std::vector<Book> const& books) {\n    const size_t n = books.size();\n    if (n == 0) return static_cast<size_t>(-1);\n\n    size_t globalBest = static_cast<size_t>(-1);\n\n    #pragma omp parallel\n    {\n        size_t localBest = static_cast<size_t>(-1);\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < n; ++i) {\n            if (books[i].pages < 100) {\n                if (localBest == static_cast<size_t>(-1) || i > localBest) {\n                    localBest = i;\n                }\n            }\n        }\n\n        #pragma omp critical\n        {\n            if (localBest != static_cast<size_t>(-1)) {\n                if (globalBest == static_cast<size_t>(-1) || localBest > globalBest) {\n                    globalBest = localBest;\n                }\n            }\n        }\n    }\n\n    return globalBest;\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

@@ -5,8 +5,8 @@
 
 We build on \ParEval~\cite{pareval}, the standard benchmark for LLM-generated
 parallel code, which comprises 420 problems spanning 12 problem
-families---sort, scan, dense and sparse linear algebra, search, reduce,
-histogram, stencil, graph, geometry, Fourier transform, and transform---across
+families - sort, scan, dense and sparse linear algebra, search, reduce,
+histogram, stencil, graph, geometry, Fourier transform, and transform - across
 seven execution models. We use the OpenMP subset (\NTasks\ tasks), reusing
 \ParEval's function-completion prompts, its randomized-input drivers, and most
 importantly its serial reference implementations as the trusted answer.
@@ -30,7 +30,7 @@ frontier general model, and \texttt{gpt-5.2}, the generation before it;
 team reaches for; and \texttt{gpt-5.4-pro}, a higher-reasoning variant that
 spends more test-time compute per program. If the reward's blind spot were
 something a stronger or more code-aware model simply grows out of, this
-panel---two generations, a code specialist, and a reasoning model---is where we
+panel - two generations, a code specialist, and a reasoning model - is where we
 would expect to see it close.
 
 It does not. Every model in the panel, the strongest included, emits programs
@@ -51,7 +51,7 @@ any difference we report is attributable to the reward, not to model style.
 All reward comparisons in Section~\ref{sec:results} are computed offline over
 a single frozen pool: \NSamples\ generated programs from \NRuns\ runs, each
 annotated with its compile status and per-configuration correctness verdict,
-and---for the \NAccepted\ programs the verifier accepted---wall time at every
+and - for the \NAccepted\ programs the verifier accepted - wall time at every
 thread count and repetition. Freezing the pool has three
 benefits. Every reward formulation is scored on identical samples, so
 differences are attributable to the reward and not to decoding. The comparison
@@ -129,3 +129,11 @@ R5c & $c\cdot\min(S_p(n)/n,1)\cdot\min(\Sigma_p(n)/2,1)$ & ablation (decomposed)
 {\footnotesize $\hat{E}=\min(S_p(n)/n,1)$; $S_p$ uses the trusted serial
 reference, $\Sigma_p$ the program's own one-thread time.}
 \end{table}
+
+Everything a reward needs to be scored is now fixed: the tasks, the seven
+generators, the frozen pool, a timing protocol built to survive the measurement
+attacks, and the formulations in Table~\ref{tab:rewards}. Every result that
+follows is therefore a computation over this one pool - reproducible,
+inference-free, and scored on identical samples - so that any difference we
+report between rewards is a fact about the rewards, not about decoding. We turn
+to those results next.

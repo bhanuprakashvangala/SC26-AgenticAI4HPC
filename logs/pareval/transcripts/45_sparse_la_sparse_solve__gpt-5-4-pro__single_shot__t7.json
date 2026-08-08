@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T00:39:11.737471+00:00",
+  "task": "45_sparse_la_sparse_solve",
+  "type": "sparse_la",
+  "model": "gpt-5.4-pro",
+  "condition": "single_shot",
+  "trial": 7,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct COOElement {\n   size_t row, column;\n   double value;\n};\n\n/* Solve the sparse linear system Ax=b for x.\n   A is a sparse NxN matrix in COO format. x and b are dense vectors with N elements.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: A=[{0,0,1}, {0,1,1}, {1,1,-2}] b=[1,4]\n   output: x=[3,-2]\n*/\nvoid solveLinearSystem(std::vector<COOElement> const& A, std::vector<double> const& b, std::vector<double> &x, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n\n```"
+    }
+  ],
+  "final_code": "",
+  "final_verdict": "CRASH",
+  "sweep": "",
+  "robust": false
+}

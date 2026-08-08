@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-07T23:44:14.434226+00:00",
+  "model": "gpt-5.4",
+  "api_response": {
+    "id": "chatcmpl-EAOWOVbi11shq5I4B3jwYy26bPGgH",
+    "served_model": "gpt-5.4-2026-03-05",
+    "created": 1786146248,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 346,
+      "prompt_tokens": 246,
+      "total_tokens": 592,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 8,
+        "engine_ttft_ms": 59,
+        "engine_ttlt_ms": 2680,
+        "pre_inference_ms": 91,
+        "service_tbt_ms": 8,
+        "service_ttft_ms": 611,
+        "service_ttlt_ms": 3228,
+        "total_duration_ms": 3146,
+        "user_visible_ttft_ms": 520
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use OpenMP to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cstddef>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    // Parallel odd-even transposition sort.\n    // Each phase performs independent compare-exchange operations on disjoint pairs,\n    // so it is correct for any OpenMP thread count.\n    for (std::size_t phase = 0; phase < n; ++phase) {\n        const std::size_t start = phase % 2; // even phase: (0,1), (2,3), ...; odd phase: (1,2), (3,4), ...\n        if (start + 1 >= n) continue;\n\n        #pragma omp parallel for default(none) shared(x, n, start)\n        for (std::ptrdiff_t i = static_cast<std::ptrdiff_t>(start);\n             i < static_cast<std::ptrdiff_t>(n - 1);\n             i += 2) {\n            const double mag1 = std::norm(x[static_cast<std::size_t>(i)]);\n            const double mag2 = std::norm(x[static_cast<std::size_t>(i + 1)]);\n            if (mag1 > mag2) {\n                std::swap(x[static_cast<std::size_t>(i)],\n                          x[static_cast<std::size_t>(i + 1)]);\n            }\n        }\n        // Implicit barrier at the end of omp parallel for ensures phase completion.\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cstddef>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    // Parallel odd-even transposition sort.\n    // Each phase performs independent compare-exchange operations on disjoint pairs,\n    // so it is correct for any OpenMP thread count.\n    for (std::size_t phase = 0; phase < n; ++phase) {\n        const std::size_t start = phase % 2; // even phase: (0,1), (2,3), ...; odd phase: (1,2), (3,4), ...\n        if (start + 1 >= n) continue;\n\n        #pragma omp parallel for default(none) shared(x, n, start)\n        for (std::ptrdiff_t i = static_cast<std::ptrdiff_t>(start);\n             i < static_cast<std::ptrdiff_t>(n - 1);\n             i += 2) {\n            const double mag1 = std::norm(x[static_cast<std::size_t>(i)]);\n            const double mag2 = std::norm(x[static_cast<std::size_t>(i + 1)]);\n            if (mag1 > mag2) {\n                std::swap(x[static_cast<std::size_t>(i)],\n                          x[static_cast<std::size_t>(i + 1)]);\n            }\n        }\n        // Implicit barrier at the end of omp parallel for ensures phase completion.\n    }\n}"
+}

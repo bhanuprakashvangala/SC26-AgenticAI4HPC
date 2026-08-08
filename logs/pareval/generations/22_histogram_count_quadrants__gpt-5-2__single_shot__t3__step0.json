@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-08T04:36:24.367329+00:00",
+  "model": "gpt-5.2",
+  "api_response": {
+    "id": "chatcmpl-EAT5CIV5fs15Kt8nZAspXnFOAP5xs",
+    "served_model": "gpt-5.2-2025-12-11",
+    "created": 1786163782,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 418,
+      "prompt_tokens": 257,
+      "total_tokens": 675,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 8,
+        "engine_ttft_ms": 51,
+        "engine_ttlt_ms": 3386,
+        "pre_inference_ms": 122,
+        "service_tbt_ms": 8,
+        "service_ttft_ms": 715,
+        "service_ttlt_ms": 3966,
+        "total_duration_ms": 3848,
+        "user_visible_ttft_ms": 593
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0u, 0u, 0u, 0u};\n\n    const int max_threads = omp_get_max_threads();\n    std::vector<std::array<size_t, 4>> local(static_cast<size_t>(max_threads),\n                                             std::array<size_t, 4>{0u, 0u, 0u, 0u});\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        auto &lb = local[static_cast<size_t>(tid)];\n\n        #pragma omp for schedule(static)\n        for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(points.size()); ++i) {\n            const double x = points[static_cast<size_t>(i)].x;\n            const double y = points[static_cast<size_t>(i)].y;\n\n            // Treat points on axes as in the \"positive\" side (>= 0).\n            // Quadrant mapping: 0:(+,+), 1:(-,+), 2:(-,-), 3:(+,-)\n            size_t q;\n            if (x >= 0.0) {\n                q = (y >= 0.0) ? 0u : 3u;\n            } else {\n                q = (y >= 0.0) ? 1u : 2u;\n            }\n            lb[q] += 1u;\n        }\n    }\n\n    for (const auto &lb : local) {\n        bins[0] += lb[0];\n        bins[1] += lb[1];\n        bins[2] += lb[2];\n        bins[3] += lb[3];\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0u, 0u, 0u, 0u};\n\n    const int max_threads = omp_get_max_threads();\n    std::vector<std::array<size_t, 4>> local(static_cast<size_t>(max_threads),\n                                             std::array<size_t, 4>{0u, 0u, 0u, 0u});\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        auto &lb = local[static_cast<size_t>(tid)];\n\n        #pragma omp for schedule(static)\n        for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(points.size()); ++i) {\n            const double x = points[static_cast<size_t>(i)].x;\n            const double y = points[static_cast<size_t>(i)].y;\n\n            // Treat points on axes as in the \"positive\" side (>= 0).\n            // Quadrant mapping: 0:(+,+), 1:(-,+), 2:(-,-), 3:(+,-)\n            size_t q;\n            if (x >= 0.0) {\n                q = (y >= 0.0) ? 0u : 3u;\n            } else {\n                q = (y >= 0.0) ? 1u : 2u;\n            }\n            lb[q] += 1u;\n        }\n    }\n\n    for (const auto &lb : local) {\n        bins[0] += lb[0];\n        bins[1] += lb[1];\n        bins[2] += lb[2];\n        bins[3] += lb[3];\n    }\n}"
+}

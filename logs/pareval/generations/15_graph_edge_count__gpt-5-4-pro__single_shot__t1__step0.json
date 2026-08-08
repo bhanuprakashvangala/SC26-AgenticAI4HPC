@@ -1,0 +1,35 @@
+{
+  "ts": "2026-08-07T22:36:05.135085+00:00",
+  "model": "gpt-5.4-pro",
+  "api_response": {
+    "id": "resp_0058957e05668ec2006a765d9419ac8196b6121f495c8ae42e",
+    "served_model": "gpt-5.4-pro",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 217,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 2000,
+      "output_tokens_details": {
+        "reasoning_tokens": 1725
+      },
+      "total_tokens": 2217
+    },
+    "finish_reason": "incomplete"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCount(std::vector<int> const& A, size_t N) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <vector>\n#include <cstddef>\n#include <limits>\n#include <stdexcept>\n\nint edgeCount(std::vector<int> const& A, size_t N) {\n    if (N != 0 && N > std::numeric_limits<std::size_t>::max() / N) {\n        throw std::invalid_argument(\"edgeCount: N*N overflows size_t\");\n    }\n\n    const std::size_t total = N * N;\n    if (A.size() != total) {\n        throw std::invalid_argument(\"edgeCount: A.size() must equal N*N\");\n    }\n\n    if (N == 0) {\n        return 0;\n    }\n\n    if (N > static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max())) {\n        throw std::invalid_argument(\"edgeCount: N is too large for OpenMP loop indexing\");\n    }\n\n    long long count = 0;\n\n    #pragma omp parallel for default(none) shared(A, N) reduction(+:count) schedule(static)\n    for (std::ptrdiff_t row = 0; row < static_cast<std::ptrdiff_t>(N); ++row) {\n        const std::size_t base = static_cast<std::size_t>(row) *",
+  "extracted_code": "```cpp\n#include <omp.h>\n#include <vector>\n#include <cstddef>\n#include <limits>\n#include <stdexcept>\n\nint edgeCount(std::vector<int> const& A, size_t N) {\n    if (N != 0 && N > std::numeric_limits<std::size_t>::max() / N) {\n        throw std::invalid_argument(\"edgeCount: N*N overflows size_t\");\n    }\n\n    const std::size_t total = N * N;\n    if (A.size() != total) {\n        throw std::invalid_argument(\"edgeCount: A.size() must equal N*N\");\n    }\n\n    if (N == 0) {\n        return 0;\n    }\n\n    if (N > static_cast<std::size_t>(std::numeric_limits<std::ptrdiff_t>::max())) {\n        throw std::invalid_argument(\"edgeCount: N is too large for OpenMP loop indexing\");\n    }\n\n    long long count = 0;\n\n    #pragma omp parallel for default(none) shared(A, N) reduction(+:count) schedule(static)\n    for (std::ptrdiff_t row = 0; row < static_cast<std::ptrdiff_t>(N); ++row) {\n        const std::size_t base = static_cast<std::size_t>(row) *"
+}

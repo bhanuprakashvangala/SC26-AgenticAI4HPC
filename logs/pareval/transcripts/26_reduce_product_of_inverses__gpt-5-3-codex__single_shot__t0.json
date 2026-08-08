@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-10T20:43:33.396957+00:00",
+  "ts": "2026-08-08T05:55:33.880778+00:00",
   "task": "26_reduce_product_of_inverses",
   "type": "reduce",
   "model": "gpt-5.3-codex",
@@ -17,10 +17,11 @@
     },
     {
       "role": "assistant",
-      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double product = 1.0;\n\n    #pragma omp parallel for reduction(*:product)\n    for (std::size_t i = 0; i < x.size(); ++i) {\n        if ((i & 1u) == 0u) {\n            product *= x[i];\n        } else {\n            product *= 1.0 / x[i];\n        }\n    }\n\n    return product;\n}\n```"
+      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double product = 1.0;\n\n    #pragma omp parallel for reduction(*:product) schedule(static)\n    for (std::size_t i = 0; i < x.size(); ++i) {\n        if ((i & 1u) == 0u) {\n            product *= x[i];\n        } else {\n            product *= 1.0 / x[i];\n        }\n    }\n\n    return product;\n}\n```"
     }
   ],
-  "final_code": "#include <vector>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double product = 1.0;\n\n    #pragma omp parallel for reduction(*:product)\n    for (std::size_t i = 0; i < x.size(); ++i) {\n        if ((i & 1u) == 0u) {\n            product *= x[i];\n        } else {\n            product *= 1.0 / x[i];\n        }\n    }\n\n    return product;\n}",
+  "final_code": "#include <vector>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double product = 1.0;\n\n    #pragma omp parallel for reduction(*:product) schedule(static)\n    for (std::size_t i = 0; i < x.size(); ++i) {\n        if ((i & 1u) == 0u) {\n            product *= x[i];\n        } else {\n            product *= 1.0 / x[i];\n        }\n    }\n\n    return product;\n}",
   "final_verdict": "NOT_ROBUST",
+  "sweep": "t1=0/2 t2=0/2 t4=0/2 t8=0/2",
   "robust": false
 }

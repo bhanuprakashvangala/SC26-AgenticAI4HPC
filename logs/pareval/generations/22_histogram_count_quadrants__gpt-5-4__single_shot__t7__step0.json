@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-08T04:36:10.807304+00:00",
+  "model": "gpt-5.4",
+  "api_response": {
+    "id": "chatcmpl-EAT4ywqMYLuba7XQhAKuOH5AgEX87",
+    "served_model": "gpt-5.4-2026-03-05",
+    "created": 1786163768,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 456,
+      "prompt_tokens": 257,
+      "total_tokens": 713,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 10,
+        "engine_ttft_ms": 95,
+        "engine_ttlt_ms": 4437,
+        "pre_inference_ms": 99,
+        "service_tbt_ms": 10,
+        "service_ttft_ms": 472,
+        "service_ttlt_ms": 4807,
+        "total_duration_ms": 4716,
+        "user_visible_ttft_ms": 373
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <vector>\n#include <array>\n#include <cstddef>\n\nstruct Point {\n    double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0, 0, 0, 0};\n\n    std::size_t q0 = 0, q1 = 0, q2 = 0, q3 = 0;\n\n    #pragma omp parallel for reduction(+:q0,q1,q2,q3)\n    for (std::size_t i = 0; i < points.size(); ++i) {\n        const Point& p = points[i];\n\n        if (p.x > 0.0 && p.y > 0.0) {\n            ++q0; // Quadrant I\n        } else if (p.x < 0.0 && p.y > 0.0) {\n            ++q1; // Quadrant II\n        } else if (p.x < 0.0 && p.y < 0.0) {\n            ++q2; // Quadrant III\n        } else if (p.x > 0.0 && p.y < 0.0) {\n            ++q3; // Quadrant IV\n        }\n        // Points on axes are ignored.\n    }\n\n    bins[0] = q0;\n    bins[1] = q1;\n    bins[2] = q2;\n    bins[3] = q3;\n}\n```",
+  "extracted_code": "#include <omp.h>\n#include <vector>\n#include <array>\n#include <cstddef>\n\nstruct Point {\n    double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0, 0, 0, 0};\n\n    std::size_t q0 = 0, q1 = 0, q2 = 0, q3 = 0;\n\n    #pragma omp parallel for reduction(+:q0,q1,q2,q3)\n    for (std::size_t i = 0; i < points.size(); ++i) {\n        const Point& p = points[i];\n\n        if (p.x > 0.0 && p.y > 0.0) {\n            ++q0; // Quadrant I\n        } else if (p.x < 0.0 && p.y > 0.0) {\n            ++q1; // Quadrant II\n        } else if (p.x < 0.0 && p.y < 0.0) {\n            ++q2; // Quadrant III\n        } else if (p.x > 0.0 && p.y < 0.0) {\n            ++q3; // Quadrant IV\n        }\n        // Points on axes are ignored.\n    }\n\n    bins[0] = q0;\n    bins[1] = q1;\n    bins[2] = q2;\n    bins[3] = q3;\n}"
+}

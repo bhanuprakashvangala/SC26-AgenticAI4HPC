@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-10T09:11:20.444000+00:00",
+  "ts": "2026-08-08T05:55:33.874135+00:00",
   "task": "26_reduce_product_of_inverses",
   "type": "reduce",
   "model": "gpt-5.2",
@@ -17,10 +17,11 @@
     },
     {
       "role": "assistant",
-      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    const int n = static_cast<int>(x.size());\n    double result = 1.0;\n\n    #pragma omp parallel for reduction(* : result)\n    for (int i = 0; i < n; ++i) {\n        const double v = x[i];\n        if ((i & 1) == 0) {\n            result *= v;\n        } else {\n            result *= 1.0 / v;\n        }\n    }\n\n    return result;\n}\n```"
+      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    const std::size_t n = x.size();\n    double prod = 1.0;\n\n    #pragma omp parallel for reduction(* : prod)\n    for (std::size_t i = 0; i < n; ++i) {\n        const double v = x[i];\n        prod *= (i & 1u) ? (1.0 / v) : v;\n    }\n\n    return prod;\n}\n```"
     }
   ],
-  "final_code": "#include <vector>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    const int n = static_cast<int>(x.size());\n    double result = 1.0;\n\n    #pragma omp parallel for reduction(* : result)\n    for (int i = 0; i < n; ++i) {\n        const double v = x[i];\n        if ((i & 1) == 0) {\n            result *= v;\n        } else {\n            result *= 1.0 / v;\n        }\n    }\n\n    return result;\n}",
+  "final_code": "#include <vector>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    const std::size_t n = x.size();\n    double prod = 1.0;\n\n    #pragma omp parallel for reduction(* : prod)\n    for (std::size_t i = 0; i < n; ++i) {\n        const double v = x[i];\n        prod *= (i & 1u) ? (1.0 / v) : v;\n    }\n\n    return prod;\n}",
   "final_verdict": "NOT_ROBUST",
+  "sweep": "t1=0/2 t2=0/2 t4=0/2 t8=0/2",
   "robust": false
 }

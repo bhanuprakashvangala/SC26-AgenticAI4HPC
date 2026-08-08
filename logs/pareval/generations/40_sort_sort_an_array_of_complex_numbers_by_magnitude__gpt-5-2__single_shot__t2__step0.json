@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-07T23:45:12.411108+00:00",
+  "model": "gpt-5.2",
+  "api_response": {
+    "id": "chatcmpl-EAOXFFAo3xBQk0Bq9ynoZO3l7iV3q",
+    "served_model": "gpt-5.2-2025-12-11",
+    "created": 1786146301,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 865,
+      "prompt_tokens": 246,
+      "total_tokens": 1111,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 8,
+        "engine_ttft_ms": 49,
+        "engine_ttlt_ms": 7230,
+        "pre_inference_ms": 108,
+        "service_tbt_ms": 8,
+        "service_ttft_ms": 600,
+        "service_ttlt_ms": 7776,
+        "total_duration_ms": 7677,
+        "user_visible_ttft_ms": 492
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use OpenMP to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cstddef>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    // Parallel stable mergesort:\n    // 1) Split into chunks, sort each chunk by magnitude (sequential per chunk).\n    // 2) Iteratively merge adjacent sorted runs in parallel into a temporary buffer.\n    const int maxThreads = omp_get_max_threads();\n    int T = maxThreads > 0 ? maxThreads : 1;\n    if (static_cast<std::size_t>(T) > n) T = static_cast<int>(n);\n\n    std::vector<std::complex<double>> tmp(n);\n\n    auto mag2 = [](const std::complex<double>& z) -> double {\n        // Compare by squared magnitude to avoid sqrt.\n        const double a = z.real();\n        const double b = z.imag();\n        return a * a + b * b;\n    };\n\n    auto comp = [&](const std::complex<double>& a, const std::complex<double>& b) -> bool {\n        return mag2(a) < mag2(b);\n    };\n\n    // Compute chunk boundaries [bounds[t], bounds[t+1])\n    std::vector<std::size_t> bounds(static_cast<std::size_t>(T) + 1);\n    for (int t = 0; t <= T; ++t) {\n        bounds[static_cast<std::size_t>(t)] = (n * static_cast<std::size_t>(t)) / static_cast<std::size_t>(T);\n    }\n\n    // Sort chunks in parallel\n    #pragma omp parallel for schedule(static)\n    for (int t = 0; t < T; ++t) {\n        const std::size_t lo = bounds[static_cast<std::size_t>(t)];\n        const std::size_t hi = bounds[static_cast<std::size_t>(t + 1)];\n        if (hi > lo) {\n            std::stable_sort(x.begin() + static_cast<std::ptrdiff_t>(lo),\n                             x.begin() + static_cast<std::ptrdiff_t>(hi),\n                             comp);\n        }\n    }\n\n    // Merge runs: width is run size; double each pass.\n    // We alternate source/destination between x and tmp.\n    bool srcIsX = true;\n    for (std::size_t width = bounds[1] - bounds[0]; width < n; width *= 2) {\n        // If initial width might be 0 (shouldn't if n>=2), handle gracefully.\n        if (width == 0) width = 1;\n\n        auto &src = srcIsX ? x : tmp;\n        auto &dst = srcIsX ? tmp : x;\n\n        #pragma omp parallel for schedule(static)\n        for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(n); i += static_cast<std::ptrdiff_t>(2 * width)) {\n            const std::size_t left  = static_cast<std::size_t>(i);\n            const std::size_t mid   = std::min(left + width, n);\n            const std::size_t right = std::min(left + 2 * width, n);\n\n            // Merge src[left:mid) and src[mid:right) into dst[left:right)\n            std::size_t a = left, b = mid, out = left;\n            while (a < mid && b < right) {\n                if (comp(src[b], src[a])) {\n                    dst[out++] = src[b++];\n                } else {\n                    dst[out++] = src[a++];\n                }\n            }\n            while (a < mid)   dst[out++] = src[a++];\n            while (b < right) dst[out++] = src[b++];\n        }\n\n        srcIsX = !srcIsX;\n    }\n\n    // If the final sorted data ended up in tmp, copy back to x.\n    if (!srcIsX) {\n        x.swap(tmp);\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cstddef>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    // Parallel stable mergesort:\n    // 1) Split into chunks, sort each chunk by magnitude (sequential per chunk).\n    // 2) Iteratively merge adjacent sorted runs in parallel into a temporary buffer.\n    const int maxThreads = omp_get_max_threads();\n    int T = maxThreads > 0 ? maxThreads : 1;\n    if (static_cast<std::size_t>(T) > n) T = static_cast<int>(n);\n\n    std::vector<std::complex<double>> tmp(n);\n\n    auto mag2 = [](const std::complex<double>& z) -> double {\n        // Compare by squared magnitude to avoid sqrt.\n        const double a = z.real();\n        const double b = z.imag();\n        return a * a + b * b;\n    };\n\n    auto comp = [&](const std::complex<double>& a, const std::complex<double>& b) -> bool {\n        return mag2(a) < mag2(b);\n    };\n\n    // Compute chunk boundaries [bounds[t], bounds[t+1])\n    std::vector<std::size_t> bounds(static_cast<std::size_t>(T) + 1);\n    for (int t = 0; t <= T; ++t) {\n        bounds[static_cast<std::size_t>(t)] = (n * static_cast<std::size_t>(t)) / static_cast<std::size_t>(T);\n    }\n\n    // Sort chunks in parallel\n    #pragma omp parallel for schedule(static)\n    for (int t = 0; t < T; ++t) {\n        const std::size_t lo = bounds[static_cast<std::size_t>(t)];\n        const std::size_t hi = bounds[static_cast<std::size_t>(t + 1)];\n        if (hi > lo) {\n            std::stable_sort(x.begin() + static_cast<std::ptrdiff_t>(lo),\n                             x.begin() + static_cast<std::ptrdiff_t>(hi),\n                             comp);\n        }\n    }\n\n    // Merge runs: width is run size; double each pass.\n    // We alternate source/destination between x and tmp.\n    bool srcIsX = true;\n    for (std::size_t width = bounds[1] - bounds[0]; width < n; width *= 2) {\n        // If initial width might be 0 (shouldn't if n>=2), handle gracefully.\n        if (width == 0) width = 1;\n\n        auto &src = srcIsX ? x : tmp;\n        auto &dst = srcIsX ? tmp : x;\n\n        #pragma omp parallel for schedule(static)\n        for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(n); i += static_cast<std::ptrdiff_t>(2 * width)) {\n            const std::size_t left  = static_cast<std::size_t>(i);\n            const std::size_t mid   = std::min(left + width, n);\n            const std::size_t right = std::min(left + 2 * width, n);\n\n            // Merge src[left:mid) and src[mid:right) into dst[left:right)\n            std::size_t a = left, b = mid, out = left;\n            while (a < mid && b < right) {\n                if (comp(src[b], src[a])) {\n                    dst[out++] = src[b++];\n                } else {\n                    dst[out++] = src[a++];\n                }\n            }\n            while (a < mid)   dst[out++] = src[a++];\n            while (b < right) dst[out++] = src[b++];\n        }\n\n        srcIsX = !srcIsX;\n    }\n\n    // If the final sorted data ended up in tmp, copy back to x.\n    if (!srcIsX) {\n        x.swap(tmp);\n    }\n}"
+}

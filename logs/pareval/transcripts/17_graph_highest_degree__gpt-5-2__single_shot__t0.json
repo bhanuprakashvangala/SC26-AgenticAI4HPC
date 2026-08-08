@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-10T09:11:20.458294+00:00",
+  "ts": "2026-08-08T02:25:01.645251+00:00",
   "task": "17_graph_highest_degree",
   "type": "graph",
   "model": "gpt-5.2",
@@ -17,10 +17,11 @@
     },
     {
       "role": "assistant",
-      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <algorithm>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    // Assume A is an N x N adjacency matrix in row-major order.\n    // Degree of node i is sum_j A[i*N + j].\n    int globalMax = 0;\n\n    #pragma omp parallel for reduction(max:globalMax) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int deg = 0;\n        const size_t rowBase = static_cast<size_t>(i) * N;\n        for (size_t j = 0; j < N; ++j) {\n            deg += A[rowBase + j];\n        }\n        globalMax = std::max(globalMax, deg);\n    }\n\n    return globalMax;\n}\n```"
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int globalMax = 0;\n\n    #pragma omp parallel for reduction(max:globalMax) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int deg = 0;\n        const size_t rowBase = static_cast<size_t>(i) * N;\n        for (size_t j = 0; j < N; ++j) {\n            deg += A[rowBase + j] != 0;\n        }\n        if (deg > globalMax) globalMax = deg;\n    }\n\n    return globalMax;\n}\n```"
     }
   ],
-  "final_code": "#include <vector>\n#include <cstddef>\n#include <algorithm>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    // Assume A is an N x N adjacency matrix in row-major order.\n    // Degree of node i is sum_j A[i*N + j].\n    int globalMax = 0;\n\n    #pragma omp parallel for reduction(max:globalMax) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int deg = 0;\n        const size_t rowBase = static_cast<size_t>(i) * N;\n        for (size_t j = 0; j < N; ++j) {\n            deg += A[rowBase + j];\n        }\n        globalMax = std::max(globalMax, deg);\n    }\n\n    return globalMax;\n}",
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int globalMax = 0;\n\n    #pragma omp parallel for reduction(max:globalMax) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int deg = 0;\n        const size_t rowBase = static_cast<size_t>(i) * N;\n        for (size_t j = 0; j < N; ++j) {\n            deg += A[rowBase + j] != 0;\n        }\n        if (deg > globalMax) globalMax = deg;\n    }\n\n    return globalMax;\n}",
   "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
   "robust": true
 }

@@ -1,10 +1,10 @@
 {
-  "ts": "2026-07-12T13:57:25.198649+00:00",
+  "ts": "2026-08-08T05:55:41.920271+00:00",
   "model": "gpt-5.4",
   "api_response": {
-    "id": "chatcmpl-E0oyEHC07kKMPNPl63Fv1BQLo6gji",
+    "id": "chatcmpl-EAUJye3fMYquwu4iTv75iVWVIX9OP",
     "served_model": "gpt-5.4-2026-03-05",
-    "created": 1783864638,
+    "created": 1786168542,
     "system_fingerprint": null,
     "usage": {
       "completion_tokens": 121,
@@ -22,15 +22,15 @@
         "cached_tokens": 0
       },
       "latency_checkpoint": {
-        "engine_tbt_ms": 11,
-        "engine_ttft_ms": 130,
-        "engine_ttlt_ms": 1500,
-        "pre_inference_ms": 87,
-        "service_tbt_ms": 11,
-        "service_ttft_ms": 689,
-        "service_ttlt_ms": 2016,
-        "total_duration_ms": 1942,
-        "user_visible_ttft_ms": 602
+        "engine_tbt_ms": 8,
+        "engine_ttft_ms": 77,
+        "engine_ttlt_ms": 1065,
+        "pre_inference_ms": 115,
+        "service_tbt_ms": 8,
+        "service_ttft_ms": 473,
+        "service_ttlt_ms": 1456,
+        "total_duration_ms": 1355,
+        "user_visible_ttft_ms": 358
       }
     },
     "finish_reason": "stop"

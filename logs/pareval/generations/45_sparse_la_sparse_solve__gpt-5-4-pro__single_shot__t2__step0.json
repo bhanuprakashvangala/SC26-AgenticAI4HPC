@@ -1,0 +1,35 @@
+{
+  "ts": "2026-08-08T00:08:56.036920+00:00",
+  "model": "gpt-5.4-pro",
+  "api_response": {
+    "id": "resp_0849dec8080de2b1006a76736d657c8196a24bc249ee56a5f6",
+    "served_model": "gpt-5.4-pro",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 236,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 2000,
+      "output_tokens_details": {
+        "reasoning_tokens": 2000
+      },
+      "total_tokens": 2236
+    },
+    "finish_reason": "incomplete"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct COOElement {\n   size_t row, column;\n   double value;\n};\n\n/* Solve the sparse linear system Ax=b for x.\n   A is a sparse NxN matrix in COO format. x and b are dense vectors with N elements.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: A=[{0,0,1}, {0,1,1}, {1,1,-2}] b=[1,4]\n   output: x=[3,-2]\n*/\nvoid solveLinearSystem(std::vector<COOElement> const& A, std::vector<double> const& b, std::vector<double> &x, size_t N) {"
+    }
+  ],
+  "raw_response": "",
+  "extracted_code": ""
+}

@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T02:25:01.679382+00:00",
+  "task": "17_graph_highest_degree",
+  "type": "graph",
+  "model": "gpt-5.4-pro",
+  "condition": "single_shot",
+  "trial": 2,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <omp.h>\n#include <vector>\n#include <cstddef>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    int max_degree = 0;\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(N);\n\n    // Degree of a node is the sum of its row in the adjacency matrix.\n    // This assumes a standard undirected adjacency matrix for a simple graph.\n    #pragma omp parallel for default(none) shared(A, N, n) reduction(max:max_degree)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        int degree = 0;\n        const size_t row_start = static_cast<size_t>(i) * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[row_start + j];\n        }\n\n        if (degree > max_degree) {\n            max_degree = degree;\n        }\n    }\n\n    return max_degree;\n}\n```"
+    }
+  ],
+  "final_code": "#include <omp.h>\n#include <vector>\n#include <cstddef>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    int max_degree = 0;\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(N);\n\n    // Degree of a node is the sum of its row in the adjacency matrix.\n    // This assumes a standard undirected adjacency matrix for a simple graph.\n    #pragma omp parallel for default(none) shared(A, N, n) reduction(max:max_degree)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        int degree = 0;\n        const size_t row_start = static_cast<size_t>(i) * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[row_start + j];\n        }\n\n        if (degree > max_degree) {\n            max_degree = degree;\n        }\n    }\n\n    return max_degree;\n}",
+  "final_verdict": "PARSE_ERR",
+  "sweep": "",
+  "robust": false
+}

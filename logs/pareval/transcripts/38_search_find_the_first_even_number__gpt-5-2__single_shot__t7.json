@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T08:42:19.720142+00:00",
+  "task": "38_search_find_the_first_even_number",
+  "type": "search",
+  "model": "gpt-5.2",
+  "condition": "single_shot",
+  "trial": 7,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the index of the first even number in the vector x.\n   Use OpenMP to parallelize the search.\n   Examples:\n\n   input: [7, 3, 9, 5, 5, 7, 2, 9, 12, 11]\n   output: 6\n\n   input: [3, 8, 9, 9, 3, 4, 8, 6]\n   output: 1\n*/\nsize_t findFirstEven(std::vector<int> const& x) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <limits>\n#include <omp.h>\n\nsize_t findFirstEven(std::vector<int> const& x) {\n    const size_t n = x.size();\n    if (n == 0) return n; // not found\n\n    size_t global_min = n;\n\n    #pragma omp parallel\n    {\n        size_t local_min = n;\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < n; ++i) {\n            if ((x[i] % 2) == 0) {\n                if (i < local_min) local_min = i;\n            }\n        }\n\n        #pragma omp critical\n        {\n            if (local_min < global_min) global_min = local_min;\n        }\n    }\n\n    return global_min; // returns n if no even number exists\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <limits>\n#include <omp.h>\n\nsize_t findFirstEven(std::vector<int> const& x) {\n    const size_t n = x.size();\n    if (n == 0) return n; // not found\n\n    size_t global_min = n;\n\n    #pragma omp parallel\n    {\n        size_t local_min = n;\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < n; ++i) {\n            if ((x[i] % 2) == 0) {\n                if (i < local_min) local_min = i;\n            }\n        }\n\n        #pragma omp critical\n        {\n            if (local_min < global_min) global_min = local_min;\n        }\n    }\n\n    return global_min; // returns n if no even number exists\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

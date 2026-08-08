@@ -1,0 +1,35 @@
+{
+  "ts": "2026-08-07T22:42:30.698833+00:00",
+  "model": "gpt-5.4-pro",
+  "api_response": {
+    "id": "resp_096d2f68680d8977006a765ef9490c8190aa5a05f081a7b11c",
+    "served_model": "gpt-5.4-pro",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 217,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 1888,
+      "output_tokens_details": {
+        "reasoning_tokens": 1732
+      },
+      "total_tokens": 2105
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCount(std::vector<int> const& A, size_t N) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint edgeCount(std::vector<int> const& A, size_t N) {\n    unsigned long long total = 0ULL;\n\n    #pragma omp parallel for reduction(+:total) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        const size_t row_base = static_cast<size_t>(i) * N;\n        for (size_t j = 0; j < N; ++j) {\n            total += (A[row_base + j] != 0);\n        }\n    }\n\n    return static_cast<int>(total);\n}\n```",
+  "extracted_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint edgeCount(std::vector<int> const& A, size_t N) {\n    unsigned long long total = 0ULL;\n\n    #pragma omp parallel for reduction(+:total) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        const size_t row_base = static_cast<size_t>(i) * N;\n        for (size_t j = 0; j < N; ++j) {\n            total += (A[row_base + j] != 0);\n        }\n    }\n\n    return static_cast<int>(total);\n}"
+}

@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T07:26:41.968395+00:00",
+  "task": "33_scan_reverse_prefix_sum",
+  "type": "scan",
+  "model": "gpt-5.2",
+  "condition": "single_shot",
+  "trial": 6,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use OpenMP to compute in parallel.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const int n = static_cast<int>(x.size());\n    output.assign(n, 0);\n    if (n == 0) return;\n\n    int P = omp_get_max_threads();\n    if (P > n) P = n;\n    if (P <= 1) {\n        int run = 0;\n        for (int i = n - 1; i >= 0; --i) {\n            run += x[i];\n            output[i] = run;\n        }\n        return;\n    }\n\n    std::vector<int> blockSum(P, 0);\n    std::vector<int> blockOffset(P, 0);\n\n    const int base = n / P;\n    const int rem  = n % P;\n\n    auto start_of = [&](int t) -> int {\n        // contiguous blocks: first 'rem' blocks have size base+1\n        return t * base + (t < rem ? t : rem);\n    };\n    auto size_of = [&](int t) -> int { return base + (t < rem ? 1 : 0); };\n    auto end_of  = [&](int t) -> int { return start_of(t) + size_of(t); }; // exclusive\n\n#pragma omp parallel num_threads(P)\n    {\n        const int tid = omp_get_thread_num();\n        const int s = start_of(tid);\n        const int e = end_of(tid);\n\n        // Local reverse prefix sum within block (store temporary results as if offset were 0)\n        int run = 0;\n        for (int i = e - 1; i >= s; --i) {\n            run += x[i];\n            output[i] = run;\n        }\n        blockSum[tid] = run;\n\n#pragma omp barrier\n\n#pragma omp single\n        {\n            // Compute offsets: sum of all blocks to the right\n            int acc = 0;\n            for (int t = P - 1; t >= 0; --t) {\n                blockOffset[t] = acc;\n                acc += blockSum[t];\n            }\n        }\n\n#pragma omp barrier\n\n        // Add the block offset to each element in this block\n        const int off = blockOffset[tid];\n        for (int i = s; i < e; ++i) {\n            output[i] += off;\n        }\n    }\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <omp.h>\n\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {\n    const int n = static_cast<int>(x.size());\n    output.assign(n, 0);\n    if (n == 0) return;\n\n    int P = omp_get_max_threads();\n    if (P > n) P = n;\n    if (P <= 1) {\n        int run = 0;\n        for (int i = n - 1; i >= 0; --i) {\n            run += x[i];\n            output[i] = run;\n        }\n        return;\n    }\n\n    std::vector<int> blockSum(P, 0);\n    std::vector<int> blockOffset(P, 0);\n\n    const int base = n / P;\n    const int rem  = n % P;\n\n    auto start_of = [&](int t) -> int {\n        // contiguous blocks: first 'rem' blocks have size base+1\n        return t * base + (t < rem ? t : rem);\n    };\n    auto size_of = [&](int t) -> int { return base + (t < rem ? 1 : 0); };\n    auto end_of  = [&](int t) -> int { return start_of(t) + size_of(t); }; // exclusive\n\n#pragma omp parallel num_threads(P)\n    {\n        const int tid = omp_get_thread_num();\n        const int s = start_of(tid);\n        const int e = end_of(tid);\n\n        // Local reverse prefix sum within block (store temporary results as if offset were 0)\n        int run = 0;\n        for (int i = e - 1; i >= s; --i) {\n            run += x[i];\n            output[i] = run;\n        }\n        blockSum[tid] = run;\n\n#pragma omp barrier\n\n#pragma omp single\n        {\n            // Compute offsets: sum of all blocks to the right\n            int acc = 0;\n            for (int t = P - 1; t >= 0; --t) {\n                blockOffset[t] = acc;\n                acc += blockSum[t];\n            }\n        }\n\n#pragma omp barrier\n\n        // Add the block offset to each element in this block\n        const int off = blockOffset[tid];\n        for (int i = s; i < e; ++i) {\n            output[i] += off;\n        }\n    }\n}",
+  "final_verdict": "NOT_ROBUST",
+  "sweep": "t1=0/2 t2=0/2 t4=0/2 t8=0/2",
+  "robust": false
+}

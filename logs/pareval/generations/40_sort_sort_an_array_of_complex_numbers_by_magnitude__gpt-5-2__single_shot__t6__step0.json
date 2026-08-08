@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-07T23:45:45.733483+00:00",
+  "model": "gpt-5.2",
+  "api_response": {
+    "id": "chatcmpl-EAOXoDbjGfj2rPNUq5hVfzBSZCqxV",
+    "served_model": "gpt-5.2-2025-12-11",
+    "created": 1786146336,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 739,
+      "prompt_tokens": 246,
+      "total_tokens": 985,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 9,
+        "engine_ttft_ms": 53,
+        "engine_ttlt_ms": 6617,
+        "pre_inference_ms": 272,
+        "service_tbt_ms": 9,
+        "service_ttft_ms": 405,
+        "service_ttlt_ms": 6948,
+        "total_duration_ms": 6684,
+        "user_visible_ttft_ms": 133
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use OpenMP to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cmath>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const int n = static_cast<int>(x.size());\n    if (n < 2) return;\n\n    // Parallel stable mergesort:\n    // 1) Split into blocks, sort each block in parallel.\n    // 2) Iteratively merge adjacent blocks; at each merge pass, merges are independent and parallelizable.\n\n    int max_threads = 1;\n#pragma omp parallel\n    {\n#pragma omp single\n        max_threads = omp_get_num_threads();\n    }\n\n    // Choose a block size that keeps work per block reasonable.\n    // Ensure at least one element per block and not too many blocks.\n    int block_size = std::max(1024, n / std::max(1, 4 * max_threads));\n    block_size = std::max(1, block_size);\n\n    auto mag2 = [](const std::complex<double>& a) -> double {\n        // Use squared magnitude to avoid sqrt and keep ordering consistent.\n        const double re = a.real();\n        const double im = a.imag();\n        return re * re + im * im;\n    };\n\n    auto cmp = [&](const std::complex<double>& a, const std::complex<double>& b) -> bool {\n        const double ma = mag2(a);\n        const double mb = mag2(b);\n        if (ma < mb) return true;\n        if (ma > mb) return false;\n        // Tie-breaker for deterministic ordering (not required by problem, but helps reproducibility)\n        if (a.real() < b.real()) return true;\n        if (a.real() > b.real()) return false;\n        return a.imag() < b.imag();\n    };\n\n    // Temporary buffer for merges (single shared vector; merges write into disjoint ranges).\n    std::vector<std::complex<double>> tmp(x.size());\n\n    // Phase 1: sort blocks in parallel\n#pragma omp parallel for schedule(static)\n    for (int start = 0; start < n; start += block_size) {\n        int end = std::min(n, start + block_size);\n        std::stable_sort(x.begin() + start, x.begin() + end, cmp);\n    }\n\n    // Phase 2: merge blocks; alternate between x and tmp each pass\n    bool in_x = true;\n    for (int width = block_size; width < n; width *= 2) {\n        auto &src = in_x ? x : tmp;\n        auto &dst = in_x ? tmp : x;\n\n#pragma omp parallel for schedule(static)\n        for (int start = 0; start < n; start += 2 * width) {\n            const int mid = std::min(n, start + width);\n            const int end = std::min(n, start + 2 * width);\n\n            if (mid >= end) {\n                // Only left run exists; copy it\n                std::copy(src.begin() + start, src.begin() + end, dst.begin() + start);\n            } else {\n                std::merge(src.begin() + start, src.begin() + mid,\n                           src.begin() + mid,   src.begin() + end,\n                           dst.begin() + start, cmp);\n            }\n        }\n\n        in_x = !in_x;\n    }\n\n    // If final data ended up in tmp, copy back\n    if (!in_x) {\n        x.swap(tmp);\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cmath>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const int n = static_cast<int>(x.size());\n    if (n < 2) return;\n\n    // Parallel stable mergesort:\n    // 1) Split into blocks, sort each block in parallel.\n    // 2) Iteratively merge adjacent blocks; at each merge pass, merges are independent and parallelizable.\n\n    int max_threads = 1;\n#pragma omp parallel\n    {\n#pragma omp single\n        max_threads = omp_get_num_threads();\n    }\n\n    // Choose a block size that keeps work per block reasonable.\n    // Ensure at least one element per block and not too many blocks.\n    int block_size = std::max(1024, n / std::max(1, 4 * max_threads));\n    block_size = std::max(1, block_size);\n\n    auto mag2 = [](const std::complex<double>& a) -> double {\n        // Use squared magnitude to avoid sqrt and keep ordering consistent.\n        const double re = a.real();\n        const double im = a.imag();\n        return re * re + im * im;\n    };\n\n    auto cmp = [&](const std::complex<double>& a, const std::complex<double>& b) -> bool {\n        const double ma = mag2(a);\n        const double mb = mag2(b);\n        if (ma < mb) return true;\n        if (ma > mb) return false;\n        // Tie-breaker for deterministic ordering (not required by problem, but helps reproducibility)\n        if (a.real() < b.real()) return true;\n        if (a.real() > b.real()) return false;\n        return a.imag() < b.imag();\n    };\n\n    // Temporary buffer for merges (single shared vector; merges write into disjoint ranges).\n    std::vector<std::complex<double>> tmp(x.size());\n\n    // Phase 1: sort blocks in parallel\n#pragma omp parallel for schedule(static)\n    for (int start = 0; start < n; start += block_size) {\n        int end = std::min(n, start + block_size);\n        std::stable_sort(x.begin() + start, x.begin() + end, cmp);\n    }\n\n    // Phase 2: merge blocks; alternate between x and tmp each pass\n    bool in_x = true;\n    for (int width = block_size; width < n; width *= 2) {\n        auto &src = in_x ? x : tmp;\n        auto &dst = in_x ? tmp : x;\n\n#pragma omp parallel for schedule(static)\n        for (int start = 0; start < n; start += 2 * width) {\n            const int mid = std::min(n, start + width);\n            const int end = std::min(n, start + 2 * width);\n\n            if (mid >= end) {\n                // Only left run exists; copy it\n                std::copy(src.begin() + start, src.begin() + end, dst.begin() + start);\n            } else {\n                std::merge(src.begin() + start, src.begin() + mid,\n                           src.begin() + mid,   src.begin() + end,\n                           dst.begin() + start, cmp);\n            }\n        }\n\n        in_x = !in_x;\n    }\n\n    // If final data ended up in tmp, copy back\n    if (!in_x) {\n        x.swap(tmp);\n    }\n}"
+}

@@ -22,7 +22,7 @@ natural next experiment, and one the released harness is built to run.
 \emph{Report reward resolution.} If the noise floor of the timing harness
 exceeds the differences the reward is meant to express, the reward is noise.
 This is cheap to measure and, as far as we can tell, not currently reported by
-anyone---ourselves included, until we looked.
+anyone - ourselves included, until we looked.
 
 \subsection{Why we do not claim a trained policy}
 
@@ -55,8 +55,8 @@ this exact task, and that the corollary about signal collapse
 \paragraph*{Prior art on the phenomenon}
 PARACODEX~\cite{paracodex} documented correctness-passing code that executes
 serially, in a GPU-offload setting, in January 2026. We do not claim priority
-on the observation. We claim the reframing---from an agent and harness defect
-to be patched, to the location of the reward function's optimum---and the CPU
+on the observation. We claim the reframing - from an agent and harness defect
+to be patched, to the location of the reward function's optimum - and the CPU
 thread-scaling instantiation.
 
 \paragraph*{Benchmark difficulty}
@@ -64,7 +64,7 @@ A reviewer may object that correctness looks saturated only because
 \ParEval's OpenMP tasks are idiomatic. We agree, and it is the argument: on
 tasks where correctness saturates, a correctness-only reward has nothing left
 to teach, while the efficiency axis remains wide open. The objection would
-bite if the efficiency spread narrowed on easy tasks. It does not---the
+bite if the efficiency spread narrowed on easy tasks. It does not - the
 \SpeedMin$\times$--\SpeedMax$\times$ range is measured on exactly these
 saturated tasks.
 
@@ -79,7 +79,7 @@ Shared-memory OpenMP, \NTasks\ \ParEval\ tasks, a single measurement machine, on
 serial reference per task. We do not generalize to MPI, CUDA, or Kokkos,
 although the argument in Section~\ref{sec:degeneracy} does not depend on the
 programming model and the harness supports them. The hazard list underlying
-\PG\ is not exhaustive, and we expect it to be extended---that is the point of
+\PG\ is not exhaustive, and we expect it to be extended - that is the point of
 releasing it.
 
 \paragraph*{The reference defines the task}
@@ -87,3 +87,7 @@ Each task has a single serial reference. Being sequential it is immune to the
 bugs under study, but it also fixes what the task means; the scan-family
 ambiguity in Section~\ref{sec:results-saturation} is a concrete instance of
 that fixing being contestable.
+
+These boundaries place the contribution against its own evidence. The next
+section places it against the literature - verifiable rewards for code, reward
+hacking, and LLMs for HPC - and states precisely what is, and is not, new here.

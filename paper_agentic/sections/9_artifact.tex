@@ -22,7 +22,7 @@ produced once on a multi-core node and are shipped as data.
 
 Repository and a tagged, DOI-archived release are provided; the review copy is
 anonymized. The code is released under a permissive open-source license, and the
-frozen pool---generations, verdicts, and timings---is included so that no API
+frozen pool - generations, verdicts, and timings - is included so that no API
 access is required to recompute the paper.
 
 \subsection*{Software dependencies}
@@ -44,32 +44,32 @@ no other tenants. Reproducing E1--E5 requires no special hardware.
 \subsection*{Repository layout}
 
 \begin{itemize}
-  \item \texttt{agent/diag\_core.py} --- the grounded evidence layer over the
+  \item \texttt{agent/diag\_core.py} - the grounded evidence layer over the
         frozen pool (Section~\ref{sec:system})
-  \item \texttt{agent/hpc\_agent.py} --- the tool-calling diagnostician and the
+  \item \texttt{agent/hpc\_agent.py} - the tool-calling diagnostician and the
         performance-critic
-  \item \texttt{agent/parallel\_gate.py} --- \PG\ scoring; produces
+  \item \texttt{agent/parallel\_gate.py} - \PG\ scoring; produces
         Figure~\ref{fig:hackheat}
-  \item \texttt{agent/compute\_numbers.py} --- recomputes E1--E4; writes the
+  \item \texttt{agent/compute\_numbers.py} - recomputes E1--E4; writes the
         paper's \texttt{numbers} macros
-  \item \texttt{agent/make\_paper\_figs.py} --- regenerates
+  \item \texttt{agent/make\_paper\_figs.py} - regenerates
         Figures~\ref{fig:projection}, \ref{fig:scaling}, \ref{fig:deadgroups}
-  \item \texttt{results/} --- the frozen pool: \texttt{scaling.jsonl} (per-thread
+  \item \texttt{results/} - the frozen pool: \texttt{scaling.jsonl} (per-thread
         timings), \texttt{pareval\_runs.jsonl} (verdicts),
         \texttt{sanitizer.jsonl}, \texttt{oversync.jsonl}
-  \item \texttt{logs/pareval/generations/} --- every generated program with its
+  \item \texttt{logs/pareval/generations/} - every generated program with its
         prompt and transcript
 \end{itemize}
 
 \subsection*{Reproduction steps}
 
 \begin{enumerate}
-  \item \texttt{python -m agent.compute\_numbers --write} --- recompute E1--E4
+  \item \texttt{python -m agent.compute\_numbers --write} - recompute E1--E4
         offline; writes \texttt{numbers\_filled.tex}.
-  \item \texttt{python -m agent.parallel\_gate --write} --- score \PG;
+  \item \texttt{python -m agent.parallel\_gate --write} - score \PG;
         writes \texttt{hacks\_numbers.tex} and \texttt{table\_hacks.tex}.
-  \item \texttt{python -m agent.make\_paper\_figs} --- regenerate all figures.
-  \item \texttt{pdflatex main} --- rebuild the PDF. \textbf{Every number comes
+  \item \texttt{python -m agent.make\_paper\_figs} - regenerate all figures.
+  \item \texttt{pdflatex main} - rebuild the PDF. \textbf{Every number comes
         from a generated macro file; there are no literal numbers in the section
         sources.}
 \end{enumerate}

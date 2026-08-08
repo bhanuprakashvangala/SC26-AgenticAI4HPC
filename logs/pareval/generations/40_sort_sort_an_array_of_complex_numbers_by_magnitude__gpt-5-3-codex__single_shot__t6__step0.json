@@ -1,0 +1,35 @@
+{
+  "ts": "2026-08-07T23:46:34.168567+00:00",
+  "model": "gpt-5.3-codex",
+  "api_response": {
+    "id": "resp_0d8432e77940a471006a766e5445e8819799da2d3d6f6ac5e3",
+    "served_model": "gpt-5.3-codex",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 246,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 371,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 617
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use OpenMP to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <complex>\n#include <algorithm>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    // Odd-even transposition sort (parallel-friendly, deterministic)\n    // Comparator: ascending by magnitude (norm), then real, then imag for tie-break stability.\n    for (std::size_t phase = 0; phase < n; ++phase) {\n        const std::size_t start = phase % 2; // even phase: (0,1),(2,3)... ; odd phase: (1,2),(3,4)...\n\n        #pragma omp parallel for default(none) shared(x, n, start)\n        for (std::ptrdiff_t i = static_cast<std::ptrdiff_t>(start);\n             i + 1 < static_cast<std::ptrdiff_t>(n);\n             i += 2) {\n            auto &a = x[static_cast<std::size_t>(i)];\n            auto &b = x[static_cast<std::size_t>(i + 1)];\n\n            const double na = std::norm(a);\n            const double nb = std::norm(b);\n\n            bool shouldSwap = false;\n            if (na > nb) {\n                shouldSwap = true;\n            } else if (na == nb) {\n                if (a.real() > b.real()) {\n                    shouldSwap = true;\n                } else if (a.real() == b.real() && a.imag() > b.imag()) {\n                    shouldSwap = true;\n                }\n            }\n\n            if (shouldSwap) {\n                std::swap(a, b);\n            }\n        }\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <complex>\n#include <algorithm>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    // Odd-even transposition sort (parallel-friendly, deterministic)\n    // Comparator: ascending by magnitude (norm), then real, then imag for tie-break stability.\n    for (std::size_t phase = 0; phase < n; ++phase) {\n        const std::size_t start = phase % 2; // even phase: (0,1),(2,3)... ; odd phase: (1,2),(3,4)...\n\n        #pragma omp parallel for default(none) shared(x, n, start)\n        for (std::ptrdiff_t i = static_cast<std::ptrdiff_t>(start);\n             i + 1 < static_cast<std::ptrdiff_t>(n);\n             i += 2) {\n            auto &a = x[static_cast<std::size_t>(i)];\n            auto &b = x[static_cast<std::size_t>(i + 1)];\n\n            const double na = std::norm(a);\n            const double nb = std::norm(b);\n\n            bool shouldSwap = false;\n            if (na > nb) {\n                shouldSwap = true;\n            } else if (na == nb) {\n                if (a.real() > b.real()) {\n                    shouldSwap = true;\n                } else if (a.real() == b.real() && a.imag() > b.imag()) {\n                    shouldSwap = true;\n                }\n            }\n\n            if (shouldSwap) {\n                std::swap(a, b);\n            }\n        }\n    }\n}"
+}

@@ -1,8 +1,8 @@
 {
-  "ts": "2026-07-12T13:46:50.955002+00:00",
+  "ts": "2026-08-08T04:36:47.405164+00:00",
   "model": "gpt-5.3-codex",
   "api_response": {
-    "id": "resp_0bbd4b37c8bc412d006a539ac204f08193a8cd2c0ac987fb95",
+    "id": "resp_0660dce06f84dc57006a76b25ddad081979221e73fe0e7f281",
     "served_model": "gpt-5.3-codex",
     "created": null,
     "system_fingerprint": null,
@@ -12,11 +12,11 @@
         "cache_write_tokens": null,
         "cached_tokens": 0
       },
-      "output_tokens": 387,
+      "output_tokens": 371,
       "output_tokens_details": {
         "reasoning_tokens": 0
       },
-      "total_tokens": 644
+      "total_tokens": 628
     },
     "finish_reason": "completed"
   },
@@ -30,6 +30,6 @@
       "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
     }
   ],
-  "raw_response": "```cpp\n#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\nstruct Point {\n    double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0, 0, 0, 0};\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 4> local = {0, 0, 0, 0};\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < points.size(); ++i) {\n            const double x = points[i].x;\n            const double y = points[i].y;\n\n            if (x > 0.0 && y > 0.0) {\n                ++local[0]; // Quadrant I\n            } else if (x < 0.0 && y > 0.0) {\n                ++local[1]; // Quadrant II\n            } else if (x < 0.0 && y < 0.0) {\n                ++local[2]; // Quadrant III\n            } else if (x > 0.0 && y < 0.0) {\n                ++local[3]; // Quadrant IV\n            }\n            // Points on axes are ignored.\n        }\n\n        #pragma omp critical\n        {\n            bins[0] += local[0];\n            bins[1] += local[1];\n            bins[2] += local[2];\n            bins[3] += local[3];\n        }\n    }\n}\n```",
-  "extracted_code": "#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\nstruct Point {\n    double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0, 0, 0, 0};\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 4> local = {0, 0, 0, 0};\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < points.size(); ++i) {\n            const double x = points[i].x;\n            const double y = points[i].y;\n\n            if (x > 0.0 && y > 0.0) {\n                ++local[0]; // Quadrant I\n            } else if (x < 0.0 && y > 0.0) {\n                ++local[1]; // Quadrant II\n            } else if (x < 0.0 && y < 0.0) {\n                ++local[2]; // Quadrant III\n            } else if (x > 0.0 && y < 0.0) {\n                ++local[3]; // Quadrant IV\n            }\n            // Points on axes are ignored.\n        }\n\n        #pragma omp critical\n        {\n            bins[0] += local[0];\n            bins[1] += local[1];\n            bins[2] += local[2];\n            bins[3] += local[3];\n        }\n    }\n}"
+  "raw_response": "```cpp\n#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\nstruct Point {\n    double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    size_t q0 = 0, q1 = 0, q2 = 0, q3 = 0; // Q1, Q2, Q3, Q4 respectively\n\n    #pragma omp parallel for reduction(+:q0,q1,q2,q3)\n    for (std::size_t i = 0; i < points.size(); ++i) {\n        const double x = points[i].x;\n        const double y = points[i].y;\n\n        if (x > 0.0 && y > 0.0) {\n            ++q0; // Quadrant I\n        } else if (x < 0.0 && y > 0.0) {\n            ++q1; // Quadrant II\n        } else if (x < 0.0 && y < 0.0) {\n            ++q2; // Quadrant III\n        } else if (x > 0.0 && y < 0.0) {\n            ++q3; // Quadrant IV\n        }\n        // Points on axes are ignored.\n    }\n\n    bins[0] = q0;\n    bins[1] = q1;\n    bins[2] = q2;\n    bins[3] = q3;\n}\n```",
+  "extracted_code": "#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\nstruct Point {\n    double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    size_t q0 = 0, q1 = 0, q2 = 0, q3 = 0; // Q1, Q2, Q3, Q4 respectively\n\n    #pragma omp parallel for reduction(+:q0,q1,q2,q3)\n    for (std::size_t i = 0; i < points.size(); ++i) {\n        const double x = points[i].x;\n        const double y = points[i].y;\n\n        if (x > 0.0 && y > 0.0) {\n            ++q0; // Quadrant I\n        } else if (x < 0.0 && y > 0.0) {\n            ++q1; // Quadrant II\n        } else if (x < 0.0 && y < 0.0) {\n            ++q2; // Quadrant III\n        } else if (x > 0.0 && y < 0.0) {\n            ++q3; // Quadrant IV\n        }\n        // Points on axes are ignored.\n    }\n\n    bins[0] = q0;\n    bins[1] = q1;\n    bins[2] = q2;\n    bins[3] = q3;\n}"
 }

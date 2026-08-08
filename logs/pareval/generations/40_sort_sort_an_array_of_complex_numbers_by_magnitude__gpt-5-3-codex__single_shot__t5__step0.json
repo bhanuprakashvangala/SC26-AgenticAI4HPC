@@ -1,0 +1,35 @@
+{
+  "ts": "2026-08-07T23:46:30.149307+00:00",
+  "model": "gpt-5.3-codex",
+  "api_response": {
+    "id": "resp_02de111f798a93c4006a766e506d7c8190acb47bfbbea74114",
+    "served_model": "gpt-5.3-codex",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 246,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 298,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 544
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use OpenMP to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cmath>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    // Parallel odd-even transposition sort (stable on equal magnitudes via index tie-breaker)\n    for (std::size_t phase = 0; phase < n; ++phase) {\n        const std::size_t start = phase & 1U; // even phase: 0, odd phase: 1\n\n        #pragma omp parallel for schedule(static)\n        for (std::ptrdiff_t i = static_cast<std::ptrdiff_t>(start);\n             i + 1 < static_cast<std::ptrdiff_t>(n);\n             i += 2) {\n            const std::size_t a = static_cast<std::size_t>(i);\n            const std::size_t b = a + 1;\n\n            const double ma = std::norm(x[a]); // squared magnitude (no sqrt needed)\n            const double mb = std::norm(x[b]);\n\n            // Swap if out of order by magnitude\n            if (ma > mb) {\n                std::swap(x[a], x[b]);\n            }\n        }\n        // Implicit barrier at end of omp for ensures phase completion before next phase.\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cmath>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    // Parallel odd-even transposition sort (stable on equal magnitudes via index tie-breaker)\n    for (std::size_t phase = 0; phase < n; ++phase) {\n        const std::size_t start = phase & 1U; // even phase: 0, odd phase: 1\n\n        #pragma omp parallel for schedule(static)\n        for (std::ptrdiff_t i = static_cast<std::ptrdiff_t>(start);\n             i + 1 < static_cast<std::ptrdiff_t>(n);\n             i += 2) {\n            const std::size_t a = static_cast<std::size_t>(i);\n            const std::size_t b = a + 1;\n\n            const double ma = std::norm(x[a]); // squared magnitude (no sqrt needed)\n            const double mb = std::norm(x[b]);\n\n            // Swap if out of order by magnitude\n            if (ma > mb) {\n                std::swap(x[a], x[b]);\n            }\n        }\n        // Implicit barrier at end of omp for ensures phase completion before next phase.\n    }\n}"
+}

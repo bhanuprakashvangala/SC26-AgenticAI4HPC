@@ -1,15 +1,15 @@
 {
-  "ts": "2026-07-12T13:39:43.918445+00:00",
+  "ts": "2026-08-08T03:53:28.247231+00:00",
   "model": "gpt-5.2",
   "api_response": {
-    "id": "chatcmpl-E0oh42wJraBVB4uQjTqdqeM92BjdL",
+    "id": "chatcmpl-EASPfjBP6g05OY4C5nlttvdZ7xlSN",
     "served_model": "gpt-5.2-2025-12-11",
-    "created": 1783863574,
+    "created": 1786161207,
     "system_fingerprint": null,
     "usage": {
-      "completion_tokens": 375,
+      "completion_tokens": 379,
       "prompt_tokens": 248,
-      "total_tokens": 623,
+      "total_tokens": 627,
       "completion_tokens_details": {
         "accepted_prediction_tokens": 0,
         "audio_tokens": 0,
@@ -22,15 +22,15 @@
         "cached_tokens": 0
       },
       "latency_checkpoint": {
-        "engine_tbt_ms": 9,
-        "engine_ttft_ms": 68,
-        "engine_ttlt_ms": 3405,
-        "pre_inference_ms": 113,
-        "service_tbt_ms": 9,
-        "service_ttft_ms": 654,
-        "service_ttlt_ms": 3967,
-        "total_duration_ms": 3862,
-        "user_visible_ttft_ms": 542
+        "engine_tbt_ms": 7,
+        "engine_ttft_ms": 42,
+        "engine_ttlt_ms": 2690,
+        "pre_inference_ms": 75,
+        "service_tbt_ms": 7,
+        "service_ttft_ms": 165,
+        "service_ttlt_ms": 2808,
+        "total_duration_ms": 2740,
+        "user_visible_ttft_ms": 90
       }
     },
     "finish_reason": "stop"
@@ -45,6 +45,6 @@
       "content": "#include <omp.h>\n\n/* Vector x contains values between 0 and 100, inclusive. Count the number of\n   values in [0,10), [10, 20), [20, 30), ... and store the counts in `bins`.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [7, 32, 95, 12, 39, 32, 11, 71, 70, 66]\n   output: [1, 2, 0, 3, 0, 0, 1, 2, 0, 1]\n*/\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {"
     }
   ],
-  "raw_response": "```cpp\n#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    const int nthreads = omp_get_max_threads();\n    std::vector<std::array<size_t, 10>> local(static_cast<std::size_t>(nthreads));\n    for (auto &a : local) a.fill(0);\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        auto &lb = local[static_cast<std::size_t>(tid)];\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            // Values are in [0,100] inclusive. Bin into [0,10), [10,20), ..., [90,100],\n            // so 100 goes into the last bin (index 9).\n            int b = static_cast<int>(x[i] / 10.0);\n            if (b < 0) b = 0;\n            if (b > 9) b = 9;\n            lb[static_cast<std::size_t>(b)]++;\n        }\n\n        #pragma omp barrier\n\n        #pragma omp for\n        for (int b = 0; b < 10; ++b) {\n            size_t sum = 0;\n            for (int t = 0; t < nthreads; ++t) {\n                sum += local[static_cast<std::size_t>(t)][static_cast<std::size_t>(b)];\n            }\n            bins[static_cast<std::size_t>(b)] = sum;\n        }\n    }\n}\n```",
-  "extracted_code": "#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    const int nthreads = omp_get_max_threads();\n    std::vector<std::array<size_t, 10>> local(static_cast<std::size_t>(nthreads));\n    for (auto &a : local) a.fill(0);\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        auto &lb = local[static_cast<std::size_t>(tid)];\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            // Values are in [0,100] inclusive. Bin into [0,10), [10,20), ..., [90,100],\n            // so 100 goes into the last bin (index 9).\n            int b = static_cast<int>(x[i] / 10.0);\n            if (b < 0) b = 0;\n            if (b > 9) b = 9;\n            lb[static_cast<std::size_t>(b)]++;\n        }\n\n        #pragma omp barrier\n\n        #pragma omp for\n        for (int b = 0; b < 10; ++b) {\n            size_t sum = 0;\n            for (int t = 0; t < nthreads; ++t) {\n                sum += local[static_cast<std::size_t>(t)][static_cast<std::size_t>(b)];\n            }\n            bins[static_cast<std::size_t>(b)] = sum;\n        }\n    }\n}"
+  "raw_response": "```cpp\n#include <array>\n#include <cstddef>\n#include <vector>\n#include <algorithm>\n#include <omp.h>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    const int max_threads = omp_get_max_threads();\n    std::vector<std::array<size_t, 10>> local(static_cast<size_t>(max_threads));\n    for (auto &a : local) a.fill(0);\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        auto &my = local[static_cast<size_t>(tid)];\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            double v = x[i];\n\n            // Clamp to [0, 100] per problem statement; handle v==100 into last bin.\n            if (v < 0.0) v = 0.0;\n            if (v > 100.0) v = 100.0;\n\n            std::size_t b = static_cast<std::size_t>(v / 10.0);\n            if (b >= 10) b = 9;\n            my[b] += 1;\n        }\n\n        #pragma omp barrier\n        #pragma omp for\n        for (int b = 0; b < 10; ++b) {\n            std::size_t sum = 0;\n            for (int t = 0; t < max_threads; ++t) {\n                sum += local[static_cast<size_t>(t)][static_cast<std::size_t>(b)];\n            }\n            bins[static_cast<std::size_t>(b)] = sum;\n        }\n    }\n}\n```",
+  "extracted_code": "#include <array>\n#include <cstddef>\n#include <vector>\n#include <algorithm>\n#include <omp.h>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    const int max_threads = omp_get_max_threads();\n    std::vector<std::array<size_t, 10>> local(static_cast<size_t>(max_threads));\n    for (auto &a : local) a.fill(0);\n\n    #pragma omp parallel\n    {\n        const int tid = omp_get_thread_num();\n        auto &my = local[static_cast<size_t>(tid)];\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            double v = x[i];\n\n            // Clamp to [0, 100] per problem statement; handle v==100 into last bin.\n            if (v < 0.0) v = 0.0;\n            if (v > 100.0) v = 100.0;\n\n            std::size_t b = static_cast<std::size_t>(v / 10.0);\n            if (b >= 10) b = 9;\n            my[b] += 1;\n        }\n\n        #pragma omp barrier\n        #pragma omp for\n        for (int b = 0; b < 10; ++b) {\n            std::size_t sum = 0;\n            for (int t = 0; t < max_threads; ++t) {\n                sum += local[static_cast<size_t>(t)][static_cast<std::size_t>(b)];\n            }\n            bins[static_cast<std::size_t>(b)] = sum;\n        }\n    }\n}"
 }

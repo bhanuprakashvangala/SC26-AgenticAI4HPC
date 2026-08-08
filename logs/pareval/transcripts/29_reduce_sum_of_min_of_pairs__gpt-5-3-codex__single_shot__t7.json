@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T06:41:08.270600+00:00",
+  "task": "29_reduce_sum_of_min_of_pairs",
+  "type": "reduce",
+  "model": "gpt-5.3-codex",
+  "condition": "single_shot",
+  "trial": 7,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the sum of the minimum value at each index of vectors x and y for all indices.\n   i.e. sum = min(x_0, y_0) + min(x_1, y_1) + min(x_2, y_2) + ...\n   Use OpenMP to sum in parallel.\n   Example:\n\n   input: x=[3, 4, 0, 2, 3], y=[2, 5, 3, 1, 7]\n   output: 10\n*/\ndouble sumOfMinimumElements(std::vector<double> const& x, std::vector<double> const& y) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <algorithm>\n#include <omp.h>\n\ndouble sumOfMinimumElements(std::vector<double> const& x, std::vector<double> const& y) {\n    const std::size_t n = std::min(x.size(), y.size());\n    double sum = 0.0;\n\n    #pragma omp parallel for reduction(+:sum)\n    for (std::size_t i = 0; i < n; ++i) {\n        sum += (x[i] < y[i]) ? x[i] : y[i];\n    }\n\n    return sum;\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <algorithm>\n#include <omp.h>\n\ndouble sumOfMinimumElements(std::vector<double> const& x, std::vector<double> const& y) {\n    const std::size_t n = std::min(x.size(), y.size());\n    double sum = 0.0;\n\n    #pragma omp parallel for reduction(+:sum)\n    for (std::size_t i = 0; i < n; ++i) {\n        sum += (x[i] < y[i]) ? x[i] : y[i];\n    }\n\n    return sum;\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

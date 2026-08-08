@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-07T23:44:34.934216+00:00",
+  "model": "gpt-5.4",
+  "api_response": {
+    "id": "chatcmpl-EAOWgda1wAMmDhcUWqKXy7ke4EDG9",
+    "served_model": "gpt-5.4-2026-03-05",
+    "created": 1786146266,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 709,
+      "prompt_tokens": 246,
+      "total_tokens": 955,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 7,
+        "engine_ttft_ms": 79,
+        "engine_ttlt_ms": 5356,
+        "pre_inference_ms": 91,
+        "service_tbt_ms": 7,
+        "service_ttft_ms": 658,
+        "service_ttlt_ms": 5897,
+        "total_duration_ms": 5815,
+        "user_visible_ttft_ms": 567
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use OpenMP to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cmath>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    // Parallel stable merge sort using OpenMP tasks.\n    // We compare by squared magnitude to avoid unnecessary square roots.\n    std::vector<std::complex<double>> buffer(n);\n\n    auto mag2 = [](const std::complex<double>& z) -> double {\n        return z.real() * z.real() + z.imag() * z.imag();\n    };\n\n    auto lessByMagnitude = [&](const std::complex<double>& a,\n                               const std::complex<double>& b) -> bool {\n        const double ma = mag2(a);\n        const double mb = mag2(b);\n        if (ma < mb) return true;\n        if (ma > mb) return false;\n        // Deterministic tie-breakers for equal magnitudes.\n        if (a.real() < b.real()) return true;\n        if (a.real() > b.real()) return false;\n        return a.imag() < b.imag();\n    };\n\n    const std::size_t serial_threshold = 2048;\n\n    struct Sorter {\n        static void sortRange(std::vector<std::complex<double>>& data,\n                              std::vector<std::complex<double>>& temp,\n                              std::size_t left,\n                              std::size_t right,\n                              std::size_t threshold,\n                              const decltype(lessByMagnitude)& comp) {\n            const std::size_t len = right - left;\n            if (len <= 1) return;\n\n            if (len <= threshold) {\n                std::stable_sort(data.begin() + static_cast<std::ptrdiff_t>(left),\n                                 data.begin() + static_cast<std::ptrdiff_t>(right),\n                                 comp);\n                return;\n            }\n\n            const std::size_t mid = left + len / 2;\n\n            #pragma omp task default(none) firstprivate(left, mid, threshold) shared(data, temp, comp)\n            {\n                sortRange(data, temp, left, mid, threshold, comp);\n            }\n\n            #pragma omp task default(none) firstprivate(mid, right, threshold) shared(data, temp, comp)\n            {\n                sortRange(data, temp, mid, right, threshold, comp);\n            }\n\n            #pragma omp taskwait\n\n            std::size_t i = left;\n            std::size_t j = mid;\n            std::size_t k = left;\n\n            while (i < mid && j < right) {\n                if (comp(data[j], data[i])) {\n                    temp[k++] = data[j++];\n                } else {\n                    temp[k++] = data[i++];\n                }\n            }\n            while (i < mid) temp[k++] = data[i++];\n            while (j < right) temp[k++] = data[j++];\n\n            std::copy(temp.begin() + static_cast<std::ptrdiff_t>(left),\n                      temp.begin() + static_cast<std::ptrdiff_t>(right),\n                      data.begin() + static_cast<std::ptrdiff_t>(left));\n        }\n    };\n\n    #pragma omp parallel\n    {\n        #pragma omp single\n        {\n            Sorter::sortRange(x, buffer, 0, n, serial_threshold, lessByMagnitude);\n        }\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cmath>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    // Parallel stable merge sort using OpenMP tasks.\n    // We compare by squared magnitude to avoid unnecessary square roots.\n    std::vector<std::complex<double>> buffer(n);\n\n    auto mag2 = [](const std::complex<double>& z) -> double {\n        return z.real() * z.real() + z.imag() * z.imag();\n    };\n\n    auto lessByMagnitude = [&](const std::complex<double>& a,\n                               const std::complex<double>& b) -> bool {\n        const double ma = mag2(a);\n        const double mb = mag2(b);\n        if (ma < mb) return true;\n        if (ma > mb) return false;\n        // Deterministic tie-breakers for equal magnitudes.\n        if (a.real() < b.real()) return true;\n        if (a.real() > b.real()) return false;\n        return a.imag() < b.imag();\n    };\n\n    const std::size_t serial_threshold = 2048;\n\n    struct Sorter {\n        static void sortRange(std::vector<std::complex<double>>& data,\n                              std::vector<std::complex<double>>& temp,\n                              std::size_t left,\n                              std::size_t right,\n                              std::size_t threshold,\n                              const decltype(lessByMagnitude)& comp) {\n            const std::size_t len = right - left;\n            if (len <= 1) return;\n\n            if (len <= threshold) {\n                std::stable_sort(data.begin() + static_cast<std::ptrdiff_t>(left),\n                                 data.begin() + static_cast<std::ptrdiff_t>(right),\n                                 comp);\n                return;\n            }\n\n            const std::size_t mid = left + len / 2;\n\n            #pragma omp task default(none) firstprivate(left, mid, threshold) shared(data, temp, comp)\n            {\n                sortRange(data, temp, left, mid, threshold, comp);\n            }\n\n            #pragma omp task default(none) firstprivate(mid, right, threshold) shared(data, temp, comp)\n            {\n                sortRange(data, temp, mid, right, threshold, comp);\n            }\n\n            #pragma omp taskwait\n\n            std::size_t i = left;\n            std::size_t j = mid;\n            std::size_t k = left;\n\n            while (i < mid && j < right) {\n                if (comp(data[j], data[i])) {\n                    temp[k++] = data[j++];\n                } else {\n                    temp[k++] = data[i++];\n                }\n            }\n            while (i < mid) temp[k++] = data[i++];\n            while (j < right) temp[k++] = data[j++];\n\n            std::copy(temp.begin() + static_cast<std::ptrdiff_t>(left),\n                      temp.begin() + static_cast<std::ptrdiff_t>(right),\n                      data.begin() + static_cast<std::ptrdiff_t>(left));\n        }\n    };\n\n    #pragma omp parallel\n    {\n        #pragma omp single\n        {\n            Sorter::sortRange(x, buffer, 0, n, serial_threshold, lessByMagnitude);\n        }\n    }\n}"
+}

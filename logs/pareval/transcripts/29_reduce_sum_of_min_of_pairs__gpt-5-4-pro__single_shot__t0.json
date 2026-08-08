@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-10T20:43:33.401367+00:00",
+  "ts": "2026-08-08T06:41:08.272605+00:00",
   "task": "29_reduce_sum_of_min_of_pairs",
   "type": "reduce",
   "model": "gpt-5.4-pro",
@@ -17,10 +17,11 @@
     },
     {
       "role": "assistant",
-      "content": "```cpp\n#include <vector>\n#include <algorithm>\n#include <stdexcept>\n#include <cstddef>\n#include <omp.h>\n\ndouble sumOfMinimumElements(std::vector<double> const& x, std::vector<double> const& y) {\n    if (x.size() != y.size()) {\n        throw std::invalid_argument(\"sumOfMinimumElements: x and y must have the same length\");\n    }\n\n    double sum = 0.0;\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(x.size());\n\n    #pragma omp parallel for reduction(+:sum) default(none) shared(x, y, n)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        sum += std::min(x[static_cast<std::size_t>(i)],\n                        y[static_cast<std::size_t>(i)]);\n    }\n\n    return sum;\n}\n```"
+      "content": "```cpp\n#include <omp.h>\n#include <algorithm>\n#include <limits>\n#include <stdexcept>\n#include <vector>\n\ndouble sumOfMinimumElements(std::vector<double> const& x, std::vector<double> const& y) {\n    if (x.size() != y.size()) {\n        throw std::invalid_argument(\"sumOfMinimumElements: x and y must have the same size\");\n    }\n\n    if (x.empty()) {\n        return 0.0;\n    }\n\n    if (x.size() > static_cast<std::size_t>(std::numeric_limits<long long>::max())) {\n        throw std::overflow_error(\"sumOfMinimumElements: input size exceeds supported OpenMP loop range\");\n    }\n\n    const long long n = static_cast<long long>(x.size());\n    double sum = 0.0;\n\n    #pragma omp parallel for reduction(+:sum) schedule(static)\n    for (long long i = 0; i < n; ++i) {\n        sum += std::min(x[static_cast<std::size_t>(i)], y[static_cast<std::size_t>(i)]);\n    }\n\n    return sum;\n}\n```"
     }
   ],
-  "final_code": "#include <vector>\n#include <algorithm>\n#include <stdexcept>\n#include <cstddef>\n#include <omp.h>\n\ndouble sumOfMinimumElements(std::vector<double> const& x, std::vector<double> const& y) {\n    if (x.size() != y.size()) {\n        throw std::invalid_argument(\"sumOfMinimumElements: x and y must have the same length\");\n    }\n\n    double sum = 0.0;\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(x.size());\n\n    #pragma omp parallel for reduction(+:sum) default(none) shared(x, y, n)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        sum += std::min(x[static_cast<std::size_t>(i)],\n                        y[static_cast<std::size_t>(i)]);\n    }\n\n    return sum;\n}",
+  "final_code": "#include <omp.h>\n#include <algorithm>\n#include <limits>\n#include <stdexcept>\n#include <vector>\n\ndouble sumOfMinimumElements(std::vector<double> const& x, std::vector<double> const& y) {\n    if (x.size() != y.size()) {\n        throw std::invalid_argument(\"sumOfMinimumElements: x and y must have the same size\");\n    }\n\n    if (x.empty()) {\n        return 0.0;\n    }\n\n    if (x.size() > static_cast<std::size_t>(std::numeric_limits<long long>::max())) {\n        throw std::overflow_error(\"sumOfMinimumElements: input size exceeds supported OpenMP loop range\");\n    }\n\n    const long long n = static_cast<long long>(x.size());\n    double sum = 0.0;\n\n    #pragma omp parallel for reduction(+:sum) schedule(static)\n    for (long long i = 0; i < n; ++i) {\n        sum += std::min(x[static_cast<std::size_t>(i)], y[static_cast<std::size_t>(i)]);\n    }\n\n    return sum;\n}",
   "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
   "robust": true
 }

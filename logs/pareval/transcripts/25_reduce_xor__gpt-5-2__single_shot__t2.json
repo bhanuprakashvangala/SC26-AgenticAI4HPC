@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-07T22:18:56.936768+00:00",
+  "task": "25_reduce_xor",
+  "type": "reduce",
+  "model": "gpt-5.2",
+  "condition": "single_shot",
+  "trial": 2,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the logical XOR reduction of the vector of bools x.\n   Use OpenMP to reduce in parallel.\n   Example:\n\n   input: [false, false, false, true]\n   output: true\n*/\nbool reduceLogicalXOR(std::vector<bool> const& x) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\nbool reduceLogicalXOR(std::vector<bool> const& x) {\n    bool result = false;\n\n    // OpenMP supports reduction on bool with the ^ operator in most compilers.\n    // To be maximally portable, use an int reduction and convert at the end.\n    int acc = 0;\n\n    const int n = static_cast<int>(x.size());\n#pragma omp parallel for reduction(^ : acc) schedule(static)\n    for (int i = 0; i < n; ++i) {\n        // vector<bool> returns a proxy; convert explicitly to int (0/1).\n        acc ^= static_cast<int>(static_cast<bool>(x[static_cast<std::size_t>(i)]));\n    }\n\n    result = (acc != 0);\n    return result;\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <omp.h>\n\nbool reduceLogicalXOR(std::vector<bool> const& x) {\n    bool result = false;\n\n    // OpenMP supports reduction on bool with the ^ operator in most compilers.\n    // To be maximally portable, use an int reduction and convert at the end.\n    int acc = 0;\n\n    const int n = static_cast<int>(x.size());\n#pragma omp parallel for reduction(^ : acc) schedule(static)\n    for (int i = 0; i < n; ++i) {\n        // vector<bool> returns a proxy; convert explicitly to int (0/1).\n        acc ^= static_cast<int>(static_cast<bool>(x[static_cast<std::size_t>(i)]));\n    }\n\n    result = (acc != 0);\n    return result;\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

@@ -1,0 +1,35 @@
+{
+  "ts": "2026-08-08T04:37:23.450383+00:00",
+  "model": "gpt-5.3-codex",
+  "api_response": {
+    "id": "resp_0fe7ac7ff47a189c006a76b27bf59c81959a93e46b45b15d29",
+    "served_model": "gpt-5.3-codex",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 257,
+      "input_tokens_details": {
+        "cache_write_tokens": 0,
+        "cached_tokens": 0
+      },
+      "output_tokens": 485,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 742
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\nstruct Point {\n    double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0, 0, 0, 0};\n\n    size_t q0 = 0, q1 = 0, q2 = 0, q3 = 0; // Q1, Q2, Q3, Q4\n\n    #pragma omp parallel for reduction(+:q0,q1,q2,q3)\n    for (std::size_t i = 0; i < points.size(); ++i) {\n        const double x = points[i].x;\n        const double y = points[i].y;\n\n        if (x > 0.0 && y > 0.0) {\n            ++q0; // Quadrant I\n        } else if (x < 0.0 && y > 0.0) {\n            ++q1; // Quadrant II\n        } else if (x < 0.0 && y < 0.0) {\n            ++q2; // Quadrant III\n        } else if (x > 0.0 && y < 0.0) {\n            ++q3; // Quadrant IV\n        }\n        // Points on axes (x == 0 or y == 0) are not counted in any quadrant.\n    }\n\n    bins[0] = q0;\n    bins[1] = q1;\n    bins[2] = q2;\n    bins[3] = q3;\n}\n```",
+  "extracted_code": "#include <vector>\n#include <array>\n#include <cstddef>\n#include <omp.h>\n\nstruct Point {\n    double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0, 0, 0, 0};\n\n    size_t q0 = 0, q1 = 0, q2 = 0, q3 = 0; // Q1, Q2, Q3, Q4\n\n    #pragma omp parallel for reduction(+:q0,q1,q2,q3)\n    for (std::size_t i = 0; i < points.size(); ++i) {\n        const double x = points[i].x;\n        const double y = points[i].y;\n\n        if (x > 0.0 && y > 0.0) {\n            ++q0; // Quadrant I\n        } else if (x < 0.0 && y > 0.0) {\n            ++q1; // Quadrant II\n        } else if (x < 0.0 && y < 0.0) {\n            ++q2; // Quadrant III\n        } else if (x > 0.0 && y < 0.0) {\n            ++q3; // Quadrant IV\n        }\n        // Points on axes (x == 0 or y == 0) are not counted in any quadrant.\n    }\n\n    bins[0] = q0;\n    bins[1] = q1;\n    bins[2] = q2;\n    bins[3] = q3;\n}"
+}

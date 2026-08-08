@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-10T20:43:33.406876+00:00",
+  "ts": "2026-08-08T08:01:49.618602+00:00",
   "task": "35_search_search_for_last_struct_by_key",
   "type": "search",
   "model": "gpt-5.4-pro",
@@ -22,5 +22,6 @@
   ],
   "final_code": "",
   "final_verdict": "CRASH",
+  "sweep": "",
   "robust": false
 }

@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-10T20:43:33.407979+00:00",
+  "ts": "2026-08-08T08:42:19.722150+00:00",
   "task": "38_search_find_the_first_even_number",
   "type": "search",
   "model": "gpt-5.3-codex",
@@ -17,10 +17,11 @@
     },
     {
       "role": "assistant",
-      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <limits>\n#include <omp.h>\n\nsize_t findFirstEven(std::vector<int> const& x) {\n    const size_t n = x.size();\n    size_t first = n;  // default: not found\n\n    #pragma omp parallel for reduction(min:first)\n    for (size_t i = 0; i < n; ++i) {\n        if ((x[i] % 2) == 0) {\n            if (i < first) first = i;\n        }\n    }\n\n    return first;\n}\n```"
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nsize_t findFirstEven(std::vector<int> const& x) {\n    size_t first = x.size();\n\n    #pragma omp parallel\n    {\n        size_t local_first = x.size();\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < x.size(); ++i) {\n            if ((x[i] % 2) == 0 && i < local_first) {\n                local_first = i;\n            }\n        }\n\n        #pragma omp critical\n        {\n            if (local_first < first) {\n                first = local_first;\n            }\n        }\n    }\n\n    return first;\n}\n```"
     }
   ],
-  "final_code": "#include <vector>\n#include <cstddef>\n#include <limits>\n#include <omp.h>\n\nsize_t findFirstEven(std::vector<int> const& x) {\n    const size_t n = x.size();\n    size_t first = n;  // default: not found\n\n    #pragma omp parallel for reduction(min:first)\n    for (size_t i = 0; i < n; ++i) {\n        if ((x[i] % 2) == 0) {\n            if (i < first) first = i;\n        }\n    }\n\n    return first;\n}",
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nsize_t findFirstEven(std::vector<int> const& x) {\n    size_t first = x.size();\n\n    #pragma omp parallel\n    {\n        size_t local_first = x.size();\n\n        #pragma omp for nowait\n        for (size_t i = 0; i < x.size(); ++i) {\n            if ((x[i] % 2) == 0 && i < local_first) {\n                local_first = i;\n            }\n        }\n\n        #pragma omp critical\n        {\n            if (local_first < first) {\n                first = local_first;\n            }\n        }\n    }\n\n    return first;\n}",
   "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
   "robust": true
 }

@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-07T22:18:56.936768+00:00",
+  "task": "25_reduce_xor",
+  "type": "reduce",
+  "model": "gpt-5.2",
+  "condition": "single_shot",
+  "trial": 1,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Return the logical XOR reduction of the vector of bools x.\n   Use OpenMP to reduce in parallel.\n   Example:\n\n   input: [false, false, false, true]\n   output: true\n*/\nbool reduceLogicalXOR(std::vector<bool> const& x) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <omp.h>\n\nbool reduceLogicalXOR(std::vector<bool> const& x) {\n    int acc = 0; // use int for OpenMP reduction portability (bool reductions can be tricky)\n    const std::size_t n = x.size();\n\n    #pragma omp parallel for reduction(^:acc)\n    for (std::size_t i = 0; i < n; ++i) {\n        acc ^= static_cast<int>(x[i]);\n    }\n\n    return acc != 0;\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <omp.h>\n\nbool reduceLogicalXOR(std::vector<bool> const& x) {\n    int acc = 0; // use int for OpenMP reduction portability (bool reductions can be tricky)\n    const std::size_t n = x.size();\n\n    #pragma omp parallel for reduction(^:acc)\n    for (std::size_t i = 0; i < n; ++i) {\n        acc ^= static_cast<int>(x[i]);\n    }\n\n    return acc != 0;\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

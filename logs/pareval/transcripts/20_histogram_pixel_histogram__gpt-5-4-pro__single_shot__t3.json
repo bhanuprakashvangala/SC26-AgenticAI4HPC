@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-07T21:48:18.390862+00:00",
+  "task": "20_histogram_pixel_histogram",
+  "type": "histogram",
+  "model": "gpt-5.4-pro",
+  "condition": "single_shot",
+  "trial": 3,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Count the number of pixels in image with each grayscale intensity.\n   The vector `image` is a grayscale image with values 0-255.\n   Store the results in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n   \n   input: image=[2, 116, 201, 11, 92, 92, 201, 4, 2]\n   output: [0, 0, 2, 0, 1, ...]\n*/\n void pixelCounts(std::vector<int> const& image, std::array<size_t, 256> &bins) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nvoid pixelCounts(std::vector<int> const& image, std::array<size_t, 256> &bins) {\n    bins.fill(0);\n\n    #pragma omp parallel default(none) shared(image, bins)\n    {\n        std::array<size_t, 256> local_bins{};\n        \n        #pragma omp for nowait schedule(static)\n        for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(image.size()); ++i) {\n            const int pixel = image[static_cast<std::size_t>(i)];\n            if (static_cast<unsigned int>(pixel) < 256u) {\n                ++local_bins[static_cast<std::size_t>(pixel)];\n            }\n        }\n\n        #pragma omp critical\n        {\n            for (std::size_t i = 0; i < local_bins.size(); ++i) {\n                bins[i] += local_bins[i];\n            }\n        }\n    }\n}\n```"
+    }
+  ],
+  "final_code": "#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nvoid pixelCounts(std::vector<int> const& image, std::array<size_t, 256> &bins) {\n    bins.fill(0);\n\n    #pragma omp parallel default(none) shared(image, bins)\n    {\n        std::array<size_t, 256> local_bins{};\n        \n        #pragma omp for nowait schedule(static)\n        for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(image.size()); ++i) {\n            const int pixel = image[static_cast<std::size_t>(i)];\n            if (static_cast<unsigned int>(pixel) < 256u) {\n                ++local_bins[static_cast<std::size_t>(pixel)];\n            }\n        }\n\n        #pragma omp critical\n        {\n            for (std::size_t i = 0; i < local_bins.size(); ++i) {\n                bins[i] += local_bins[i];\n            }\n        }\n    }\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

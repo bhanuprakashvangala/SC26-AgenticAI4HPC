@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-10T09:11:20.458294+00:00",
+  "ts": "2026-08-08T02:25:01.636825+00:00",
   "task": "17_graph_highest_degree",
   "type": "graph",
   "model": "gpt-5.4",
@@ -17,10 +17,11 @@
     },
     {
       "role": "assistant",
-      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int max_degree = 0;\n\n    #pragma omp parallel for reduction(max:max_degree)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int degree = 0;\n        const size_t row = static_cast<size_t>(i) * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[row + j];\n        }\n\n        if (degree > max_degree) {\n            max_degree = degree;\n        }\n    }\n\n    return max_degree;\n}\n```"
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int max_degree = 0;\n\n    #pragma omp parallel for reduction(max:max_degree)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int degree = 0;\n        const size_t row_start = static_cast<size_t>(i) * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[row_start + j];\n        }\n\n        if (degree > max_degree) {\n            max_degree = degree;\n        }\n    }\n\n    return max_degree;\n}\n```"
     }
   ],
-  "final_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int max_degree = 0;\n\n    #pragma omp parallel for reduction(max:max_degree)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int degree = 0;\n        const size_t row = static_cast<size_t>(i) * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[row + j];\n        }\n\n        if (degree > max_degree) {\n            max_degree = degree;\n        }\n    }\n\n    return max_degree;\n}",
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int max_degree = 0;\n\n    #pragma omp parallel for reduction(max:max_degree)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int degree = 0;\n        const size_t row_start = static_cast<size_t>(i) * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[row_start + j];\n        }\n\n        if (degree > max_degree) {\n            max_degree = degree;\n        }\n    }\n\n    return max_degree;\n}",
   "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
   "robust": true
 }

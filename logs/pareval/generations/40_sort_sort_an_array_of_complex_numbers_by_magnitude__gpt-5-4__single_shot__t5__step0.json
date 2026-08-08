@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-07T23:44:39.165820+00:00",
+  "model": "gpt-5.4",
+  "api_response": {
+    "id": "chatcmpl-EAOWnBsOiJDXXAaAEkJLbSAvpxPwh",
+    "served_model": "gpt-5.4-2026-03-05",
+    "created": 1786146273,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 366,
+      "prompt_tokens": 246,
+      "total_tokens": 612,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 7,
+        "engine_ttft_ms": 95,
+        "engine_ttlt_ms": 2749,
+        "pre_inference_ms": 90,
+        "service_tbt_ms": 7,
+        "service_ttft_ms": 673,
+        "service_ttlt_ms": 3301,
+        "total_duration_ms": 3219,
+        "user_visible_ttft_ms": 583
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use OpenMP to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cmath>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    std::vector<std::complex<double>> temp(n);\n\n    for (std::size_t width = 1; width < n; width *= 2) {\n        const std::size_t block = 2 * width;\n        const std::size_t numBlocks = (n + block - 1) / block;\n\n        #pragma omp parallel for schedule(static)\n        for (std::ptrdiff_t b = 0; b < static_cast<std::ptrdiff_t>(numBlocks); ++b) {\n            const std::size_t left = static_cast<std::size_t>(b) * block;\n            const std::size_t mid = std::min(left + width, n);\n            const std::size_t right = std::min(left + block, n);\n\n            std::size_t i = left;\n            std::size_t j = mid;\n            std::size_t k = left;\n\n            while (i < mid && j < right) {\n                const double mi = std::norm(x[i]);\n                const double mj = std::norm(x[j]);\n\n                if (mi <= mj) {\n                    temp[k++] = x[i++];\n                } else {\n                    temp[k++] = x[j++];\n                }\n            }\n\n            while (i < mid) {\n                temp[k++] = x[i++];\n            }\n\n            while (j < right) {\n                temp[k++] = x[j++];\n            }\n        }\n\n        x.swap(temp);\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cmath>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) return;\n\n    std::vector<std::complex<double>> temp(n);\n\n    for (std::size_t width = 1; width < n; width *= 2) {\n        const std::size_t block = 2 * width;\n        const std::size_t numBlocks = (n + block - 1) / block;\n\n        #pragma omp parallel for schedule(static)\n        for (std::ptrdiff_t b = 0; b < static_cast<std::ptrdiff_t>(numBlocks); ++b) {\n            const std::size_t left = static_cast<std::size_t>(b) * block;\n            const std::size_t mid = std::min(left + width, n);\n            const std::size_t right = std::min(left + block, n);\n\n            std::size_t i = left;\n            std::size_t j = mid;\n            std::size_t k = left;\n\n            while (i < mid && j < right) {\n                const double mi = std::norm(x[i]);\n                const double mj = std::norm(x[j]);\n\n                if (mi <= mj) {\n                    temp[k++] = x[i++];\n                } else {\n                    temp[k++] = x[j++];\n                }\n            }\n\n            while (i < mid) {\n                temp[k++] = x[i++];\n            }\n\n            while (j < right) {\n                temp[k++] = x[j++];\n            }\n        }\n\n        x.swap(temp);\n    }\n}"
+}

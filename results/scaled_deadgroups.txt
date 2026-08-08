@@ -1,0 +1,13 @@
+MEASURED dead-group rates from k=8 scaled run (SC26 AgenticAI4HPC)
+pool: 482 rows, 61 (task,model) cells, 14 OMP tasks x 4 closed models
+pooled single-shot pass rate: 50.0% (vs 82.8% on the easier frozen pool)
+cells all-pass (p=1): 24 ; all-fail (p=0): 26 ; mixed: 11
+
+model-based (avg p^k+(1-p)^k), measured per-cell p:
+  k= 4  corr-only=89.8%  gated=44.9%
+  k= 8  corr-only=86.1%  gated=43.8%
+  k=16  corr-only=83.3%  gated=43.0%
+
+direct empirical k=8 (60 cells): corr-only dead (all-8-same)=81.7% ; gate dead (all-8-fail)=43.3%
+
+paper PREDICTED (1 sample/cell, frozen pool p=82.8%%): corr-only 88.8%% ; gated 12.5%% at k=8

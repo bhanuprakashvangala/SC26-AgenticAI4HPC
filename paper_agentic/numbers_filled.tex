@@ -26,8 +26,12 @@
 \newcommand{\DeadGroupGateFour}{12.5}% PREDICTED % zero-variance groups @k=4 under R_gate (all-incorrect only)
 \newcommand{\DeadGroupGateEight}{12.5}% PREDICTED % zero-variance groups @k=8 under R_gate (all-incorrect only)
 \newcommand{\DeadGroupGateSixteen}{12.5}% PREDICTED % zero-variance groups @k=16 under R_gate (all-incorrect only)
-\newcommand{\BoNCorr}{3.73}% realized mean S8, correctness-only selection (proxy)
-\newcommand{\BoNGate}{4.28}% realized mean S8, efficiency-gated selection (proxy)
-\newcommand{\BoNOracle}{4.28}% oracle-best S8 per task
-\newcommand{\BoNGain}{15.0}% % more speedup the gate recovers from the same samples
+\newcommand{\BoNCorr}{3.73}% realized mean self-speedup, correctness-only selection (pool mean, proxy)
+\newcommand{\BoNGate}{3.83}% realized mean self-speedup, REFERENCE-anchored gate selection (proxy)
+\newcommand{\BoNOracle}{4.28}% oracle-best self-speedup per task
+\newcommand{\BoNGain}{2.5}% % more self-speedup the reference-anchored gate recovers from the same samples
+\newcommand{\BoNGateSelf}{4.28}% realized self-speedup, SELF-anchored gate (== oracle; but H4-hackable)
+\newcommand{\BoNGainSelf}{14.8}% % gain of the self-anchored gate (sacrificed for hack-resistance)
 \newcommand{\PoolsDiffering}{12}% tasks (>=2 candidates) where the two rewards pick differently
+
+\newcommand{\NInjected}{3}% injected race controls in results/injected_races.jsonl

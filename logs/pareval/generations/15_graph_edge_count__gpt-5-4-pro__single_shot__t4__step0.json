@@ -1,0 +1,35 @@
+{
+  "ts": "2026-08-07T22:39:48.377128+00:00",
+  "model": "gpt-5.4-pro",
+  "api_response": {
+    "id": "resp_03bb6710ad850c89006a765e8d5fc48195913efe8de66f4256",
+    "served_model": "gpt-5.4-pro",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 217,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 1883,
+      "output_tokens_details": {
+        "reasoning_tokens": 1662
+      },
+      "total_tokens": 2100
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCount(std::vector<int> const& A, size_t N) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <vector>\n#include <cstddef>\n#include <limits>\n\nint edgeCount(std::vector<int> const& A, size_t N) {\n    // Count only the NxN portion, but never read past A.size().\n    size_t total_cells = 0;\n    if (N != 0 && N <= std::numeric_limits<size_t>::max() / N) {\n        total_cells = N * N;\n        if (total_cells > A.size()) {\n            total_cells = A.size();\n        }\n    } else {\n        // If N*N would overflow size_t, clamp to the available storage.\n        total_cells = A.size();\n    }\n\n    long long total = 0;\n\n    #pragma omp parallel for reduction(+:total) schedule(static)\n    for (size_t idx = 0; idx < total_cells; ++idx) {\n        total += (A[idx] != 0) ? 1LL : 0LL;\n    }\n\n    return static_cast<int>(total);\n}\n```",
+  "extracted_code": "#include <omp.h>\n#include <vector>\n#include <cstddef>\n#include <limits>\n\nint edgeCount(std::vector<int> const& A, size_t N) {\n    // Count only the NxN portion, but never read past A.size().\n    size_t total_cells = 0;\n    if (N != 0 && N <= std::numeric_limits<size_t>::max() / N) {\n        total_cells = N * N;\n        if (total_cells > A.size()) {\n            total_cells = A.size();\n        }\n    } else {\n        // If N*N would overflow size_t, clamp to the available storage.\n        total_cells = A.size();\n    }\n\n    long long total = 0;\n\n    #pragma omp parallel for reduction(+:total) schedule(static)\n    for (size_t idx = 0; idx < total_cells; ++idx) {\n        total += (A[idx] != 0) ? 1LL : 0LL;\n    }\n\n    return static_cast<int>(total);\n}"
+}

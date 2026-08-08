@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-08T04:35:44.539083+00:00",
+  "model": "gpt-5.4",
+  "api_response": {
+    "id": "chatcmpl-EAT4ZGrTBJk57NrvlUn1Uo5iVCTUM",
+    "served_model": "gpt-5.4-2026-03-05",
+    "created": 1786163743,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 300,
+      "prompt_tokens": 257,
+      "total_tokens": 557,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 8,
+        "engine_ttft_ms": 110,
+        "engine_ttlt_ms": 2651,
+        "pre_inference_ms": 64,
+        "service_tbt_ms": 8,
+        "service_ttft_ms": 520,
+        "service_ttlt_ms": 3055,
+        "total_duration_ms": 3000,
+        "user_visible_ttft_ms": 456
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct Point {\n   double x, y;\n};\n\n/* Count the number of cartesian points in each quadrant. The vector points contains a list of `Point` objects.\n   Store the counts in `bins`.\n   Use OpenMP to count in parallel.\n   Example:\n\n   input: [{x=1.5, y=0.1}, {x=-3, y=1.1}, {x=5, y=9}, {x=1.5, y=-1}, {x=3, y=-7}, {x=0.1, y=2}]\n   output: [3, 1, 0, 2]\n*/\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <vector>\n#include <array>\n#include <cstddef>\n\nstruct Point {\n    double x, y;\n};\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0, 0, 0, 0};\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 4> local_bins = {0, 0, 0, 0};\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < points.size(); ++i) {\n            const double x = points[i].x;\n            const double y = points[i].y;\n\n            if (x > 0 && y > 0) {\n                local_bins[0]++;\n            } else if (x < 0 && y > 0) {\n                local_bins[1]++;\n            } else if (x < 0 && y < 0) {\n                local_bins[2]++;\n            } else if (x > 0 && y < 0) {\n                local_bins[3]++;\n            }\n            // Points on an axis are ignored.\n        }\n\n        #pragma omp critical\n        {\n            for (int q = 0; q < 4; ++q) {\n                bins[q] += local_bins[q];\n            }\n        }\n    }\n}\n```",
+  "extracted_code": "#include <omp.h>\n#include <vector>\n#include <array>\n#include <cstddef>\n\nstruct Point {\n    double x, y;\n};\n\nvoid countQuadrants(std::vector<Point> const& points, std::array<size_t, 4> &bins) {\n    bins = {0, 0, 0, 0};\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 4> local_bins = {0, 0, 0, 0};\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < points.size(); ++i) {\n            const double x = points[i].x;\n            const double y = points[i].y;\n\n            if (x > 0 && y > 0) {\n                local_bins[0]++;\n            } else if (x < 0 && y > 0) {\n                local_bins[1]++;\n            } else if (x < 0 && y < 0) {\n                local_bins[2]++;\n            } else if (x > 0 && y < 0) {\n                local_bins[3]++;\n            }\n            // Points on an axis are ignored.\n        }\n\n        #pragma omp critical\n        {\n            for (int q = 0; q < 4; ++q) {\n                bins[q] += local_bins[q];\n            }\n        }\n    }\n}"
+}

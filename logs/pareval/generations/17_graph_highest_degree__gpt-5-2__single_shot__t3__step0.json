@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-08T01:58:59.550880+00:00",
+  "model": "gpt-5.2",
+  "api_response": {
+    "id": "chatcmpl-EAQcoLAdhN2eqvCT43WQ7yhjDKJsA",
+    "served_model": "gpt-5.2-2025-12-11",
+    "created": 1786154334,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 215,
+      "prompt_tokens": 223,
+      "total_tokens": 438,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 7,
+        "engine_ttft_ms": 46,
+        "engine_ttlt_ms": 1528,
+        "pre_inference_ms": 77,
+        "service_tbt_ms": 7,
+        "service_ttft_ms": 483,
+        "service_ttlt_ms": 1960,
+        "total_duration_ms": 1892,
+        "user_visible_ttft_ms": 406
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <cstddef>\n#include <algorithm>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) return 0;\n\n    int globalMax = 0;\n\n    #pragma omp parallel\n    {\n        int localMax = 0;\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < N; ++i) {\n            int deg = 0;\n            const std::size_t rowBase = i * N;\n            for (std::size_t j = 0; j < N; ++j) {\n                deg += (A[rowBase + j] != 0) ? 1 : 0;\n            }\n            localMax = std::max(localMax, deg);\n        }\n\n        #pragma omp critical\n        {\n            globalMax = std::max(globalMax, localMax);\n        }\n    }\n\n    return globalMax;\n}\n```",
+  "extracted_code": "#include <vector>\n#include <cstddef>\n#include <algorithm>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) return 0;\n\n    int globalMax = 0;\n\n    #pragma omp parallel\n    {\n        int localMax = 0;\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < N; ++i) {\n            int deg = 0;\n            const std::size_t rowBase = i * N;\n            for (std::size_t j = 0; j < N; ++j) {\n                deg += (A[rowBase + j] != 0) ? 1 : 0;\n            }\n            localMax = std::max(localMax, deg);\n        }\n\n        #pragma omp critical\n        {\n            globalMax = std::max(globalMax, localMax);\n        }\n    }\n\n    return globalMax;\n}"
+}

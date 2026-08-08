@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-07T22:32:36.429261+00:00",
+  "model": "gpt-5.4",
+  "api_response": {
+    "id": "chatcmpl-EANP5rIt3oyyTs12KBptCD2NPxUCY",
+    "served_model": "gpt-5.4-2026-03-05",
+    "created": 1786141951,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 110,
+      "prompt_tokens": 217,
+      "total_tokens": 327,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 14,
+        "engine_ttft_ms": 231,
+        "engine_ttlt_ms": 1762,
+        "pre_inference_ms": 100,
+        "service_tbt_ms": 14,
+        "service_ttft_ms": 1014,
+        "service_ttlt_ms": 2523,
+        "total_duration_ms": 2432,
+        "user_visible_ttft_ms": 914
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Count the number of edges in the directed graph defined by the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A represents a directed graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 6\n*/\nint edgeCount(std::vector<int> const& A, size_t N) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint edgeCount(std::vector<int> const& A, size_t N) {\n    long long total = 0;\n\n    #pragma omp parallel for reduction(+:total) schedule(static)\n    for (size_t i = 0; i < N * N; ++i) {\n        total += (A[i] != 0) ? 1 : 0;\n    }\n\n    return static_cast<int>(total);\n}\n```",
+  "extracted_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint edgeCount(std::vector<int> const& A, size_t N) {\n    long long total = 0;\n\n    #pragma omp parallel for reduction(+:total) schedule(static)\n    for (size_t i = 0; i < N * N; ++i) {\n        total += (A[i] != 0) ? 1 : 0;\n    }\n\n    return static_cast<int>(total);\n}"
+}

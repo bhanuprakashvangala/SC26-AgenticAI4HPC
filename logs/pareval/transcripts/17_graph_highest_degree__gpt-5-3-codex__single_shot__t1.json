@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T02:25:01.652086+00:00",
+  "task": "17_graph_highest_degree",
+  "type": "graph",
+  "model": "gpt-5.3-codex",
+  "condition": "single_shot",
+  "trial": 1,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int globalMax = 0;\n\n    #pragma omp parallel for reduction(max:globalMax)\n    for (size_t i = 0; i < N; ++i) {\n        int degree = 0;\n        const size_t rowStart = i * N;\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[rowStart + j];\n        }\n        if (degree > globalMax) {\n            globalMax = degree;\n        }\n    }\n\n    return globalMax;\n}\n```"
+    }
+  ],
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    int globalMax = 0;\n\n    #pragma omp parallel for reduction(max:globalMax)\n    for (size_t i = 0; i < N; ++i) {\n        int degree = 0;\n        const size_t rowStart = i * N;\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[rowStart + j];\n        }\n        if (degree > globalMax) {\n            globalMax = degree;\n        }\n    }\n\n    return globalMax;\n}",
+  "final_verdict": "PARSE_ERR",
+  "sweep": "",
+  "robust": false
+}

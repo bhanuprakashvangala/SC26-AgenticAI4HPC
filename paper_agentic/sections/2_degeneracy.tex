@@ -7,7 +7,7 @@ The argument is short. Its consequences are not.
 One object plays two roles throughout, and keeping them straight removes most of
 the apparent complexity. The correctness check $c$ is what an agent runs to
 accept its own draft \emph{and} the verifiable reward a post-training loop
-maximizes---the same predicate wearing two hats. The optimum-degeneracy result
+maximizes - the same predicate wearing two hats. The optimum-degeneracy result
 (Proposition~\ref{prop:degeneracy}) indicts both at once: an agent accepts
 correct-but-serial code, and a training optimum sits on it. The signal-collapse
 result (Proposition~\ref{prop:collapse}) is specific to the training loop. The
@@ -27,8 +27,8 @@ A parallel program admits a family of execution configurations. We fix
 attention on the OpenMP thread count $n$ and write $c(p) \in \{0,1\}$ for the
 correctness indicator: $c(p)=1$ iff $p$ compiles, runs, and matches $R_t$ on
 every validation input at every thread count and repetition tested. This is
-the strongest output-based check in common use---strictly stronger than a
-single execution, which is the usual practice~\cite{pareval}---and the argument
+the strongest output-based check in common use - strictly stronger than a
+single execution, which is the usual practice~\cite{pareval} - and the argument
 below applies to it, and therefore a fortiori to weaker checks.
 
 For a program that compiles and validates, let $T_p(n)$ be its wall time on
@@ -85,8 +85,8 @@ OpenMP worksharing constructs are, by specification, semantically transparent
 in the absence of data races: executing a \texttt{parallel for} region with one
 thread is equivalent to executing the loop body sequentially in iteration
 order. Removing the directive therefore yields the sequential execution that
-$c$ compares against $R_t$. If $p$ was correct at $n=1$---which
-$c(p)=1$ requires---then $\serialproj(p)$ produces that same output at every
+$c$ compares against $R_t$. If $p$ was correct at $n=1$ - which
+$c(p)=1$ requires - then $\serialproj(p)$ produces that same output at every
 $n$, because it has no parallelism whose schedule could vary. Hence
 $c(\serialproj(p))=1$. Since $\Rcorr$ takes values in $\{0,1\}$ and
 $\Rcorr(p)=1$ is maximal, $\serialproj(p)$ attains the maximum. It contains no
@@ -103,8 +103,8 @@ inherited from the pretrained prior. The reward neither reinforces nor
 protects it.
 
 Note also what the proposition does \emph{not} depend on. It does not depend on
-the checker being weak. Strengthening $c$---more inputs, more thread counts,
-more repetitions, a happens-before race detector alongside---raises the bar for
+the checker being weak. Strengthening $c$ - more inputs, more thread counts,
+more repetitions, a happens-before race detector alongside - raises the bar for
 $p$ and leaves $\serialproj(p)$ untouched, because a program with no
 concurrency passes every concurrency check trivially. Improving the correctness
 verifier moves the reward's argmax \emph{toward} the serial program, not away
@@ -129,8 +129,8 @@ deviation~\cite{grpo,dapo,drgrpo,gspo,threeops}:
 \label{prop:collapse}
 Let $p_t$ be the per-task probability that a sample is correct. Under
 $\Rcorr$, the probability that a group of $k$ i.i.d.\ samples for task $t$
-yields $\varsigma(\mathbf{r}) = 0$---and hence a zero or undefined
-advantage for every member---is
+yields $\varsigma(\mathbf{r}) = 0$ - and hence a zero or undefined
+advantage for every member - is
 \begin{equation}
   \Pr[\text{dead group}] = p_t^{\,k} + (1-p_t)^{\,k}.
   \label{eq:deadgroup}
@@ -170,7 +170,7 @@ machine would be a bad oracle. For HPC it identifies the mismatch. The purpose
 of writing OpenMP rather than a sequential loop is to exploit a particular
 machine. A reward that is constant across every machine therefore defines an
 optimum that is, by construction, independent of the only thing the task is
-about---and an optimum that is tied to whatever machine the timing was collected
+about - and an optimum that is tied to whatever machine the timing was collected
 on, which is why we measure on a fixed machine and treat cross-machine transfer
 as an explicit limitation (Section~\ref{sec:discussion}).
 
@@ -178,8 +178,8 @@ as an explicit limitation (Section~\ref{sec:discussion}).
 
 It is tempting to read Proposition~\ref{prop:degeneracy} as a call for a better
 verifier, and we spent some time making that mistake. The relevant distinction
-is between \emph{extensional} verification---does the program produce the right
-outputs---and \emph{intensional} verification---does it produce them the right
+is between \emph{extensional} verification - does the program produce the right
+outputs - and \emph{intensional} verification - does it produce them the right
 way~\cite{gamingverifiers}. Differential testing across thread counts,
 repetition to expose nondeterminism, and happens-before race
 detection~\cite{archer,tsan} are all improvements to the extensional check.
@@ -190,6 +190,6 @@ What is needed instead is a second observable that is not a function of the
 output. Wall time is the obvious one, it is what the HPC community already
 measures, and it is the one we adopt in Section~\ref{sec:reward}. Its cost is
 that it is a physical measurement rather than a logical predicate, with all
-the reproducibility difficulty that implies---which is why
+the reproducibility difficulty that implies - which is why
 Section~\ref{sec:results-robust} treats measurement reliability as a
 first-class result rather than an appendix.

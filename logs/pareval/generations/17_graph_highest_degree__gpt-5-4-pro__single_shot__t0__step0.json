@@ -1,8 +1,8 @@
 {
-  "ts": "2026-07-12T14:24:17.437359+00:00",
+  "ts": "2026-08-08T02:01:12.784387+00:00",
   "model": "gpt-5.4-pro",
   "api_response": {
-    "id": "resp_00226dd516d293a1006a53a33d407c8197b66a7f434b07acd7",
+    "id": "resp_0c83e077cde96af4006a768d852e2c819798d58a414e2a131b",
     "served_model": "gpt-5.4-pro",
     "created": null,
     "system_fingerprint": null,
@@ -12,13 +12,13 @@
         "cache_write_tokens": null,
         "cached_tokens": 0
       },
-      "output_tokens": 2000,
+      "output_tokens": 1692,
       "output_tokens_details": {
-        "reasoning_tokens": 1845
+        "reasoning_tokens": 1476
       },
-      "total_tokens": 2223
+      "total_tokens": 1915
     },
-    "finish_reason": "incomplete"
+    "finish_reason": "completed"
   },
   "messages": [
     {
@@ -30,6 +30,6 @@
       "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
     }
   ],
-  "raw_response": "```cpp\n#include <omp.h>\n#include <vector>\n#include <cstddef>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    // Guard against invalid input size and avoid overflow in N*N.\n    if (A.size() / N < N) {\n        return 0;\n    }\n\n    std::size_t max_degree = 0;\n\n    #pragma omp parallel for reduction(max:max_degree) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        const std::size_t row_start = static_cast<std::",
-  "extracted_code": "```cpp\n#include <omp.h>\n#include <vector>\n#include <cstddef>\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    // Guard against invalid input size and avoid overflow in N*N.\n    if (A.size() / N < N) {\n        return 0;\n    }\n\n    std::size_t max_degree = 0;\n\n    #pragma omp parallel for reduction(max:max_degree) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        const std::size_t row_start = static_cast<std::"
+  "raw_response": "```cpp\n#include <omp.h>\n#include <vector>\n#include <cstddef>\n\nusing std::size_t;\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    // Guard against malformed input with fewer than N*N elements.\n    if (A.size() / N < N) {\n        return 0;\n    }\n\n    int max_degree = 0;\n\n    #pragma omp parallel for default(none) shared(A, N) reduction(max:max_degree) schedule(static)\n    for (size_t i = 0; i < N; ++i) {\n        int degree = 0;\n        const size_t row_start = i * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[row_start + j];\n        }\n\n        if (degree > max_degree) {\n            max_degree = degree;\n        }\n    }\n\n    return max_degree;\n}\n```",
+  "extracted_code": "#include <omp.h>\n#include <vector>\n#include <cstddef>\n\nusing std::size_t;\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    // Guard against malformed input with fewer than N*N elements.\n    if (A.size() / N < N) {\n        return 0;\n    }\n\n    int max_degree = 0;\n\n    #pragma omp parallel for default(none) shared(A, N) reduction(max:max_degree) schedule(static)\n    for (size_t i = 0; i < N; ++i) {\n        int degree = 0;\n        const size_t row_start = i * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[row_start + j];\n        }\n\n        if (degree > max_degree) {\n            max_degree = degree;\n        }\n    }\n\n    return max_degree;\n}"
 }

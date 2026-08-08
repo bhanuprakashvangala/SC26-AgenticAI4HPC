@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-07T23:44:43.499839+00:00",
+  "model": "gpt-5.4",
+  "api_response": {
+    "id": "chatcmpl-EAOWrYqGzS1d7iscYk7RYRXucjcwf",
+    "served_model": "gpt-5.4-2026-03-05",
+    "created": 1786146277,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 424,
+      "prompt_tokens": 246,
+      "total_tokens": 670,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 7,
+        "engine_ttft_ms": 47,
+        "engine_ttlt_ms": 3124,
+        "pre_inference_ms": 73,
+        "service_tbt_ms": 7,
+        "service_ttft_ms": 604,
+        "service_ttlt_ms": 3658,
+        "total_duration_ms": 3593,
+        "user_visible_ttft_ms": 531
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Sort the vector x of complex numbers by their magnitude in ascending order.\n   Use OpenMP to sort in parallel.\n   Example:\n   \n   input: [3.0-1.0i, 4.5+2.1i, 0.0-1.0i, 1.0-0.0i, 0.5+0.5i]\n   output: [0.5+0.5i, 0.0-1.0i, 1.0-0.0i, 3.0-1.0i, 4.5+2.1i]\n*/\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cstddef>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) {\n        return;\n    }\n\n    auto mag2 = [](const std::complex<double>& z) -> double {\n        return std::norm(z);\n    };\n\n    auto lessByMagnitude = [&](const std::complex<double>& a,\n                               const std::complex<double>& b) -> bool {\n        const double na = mag2(a);\n        const double nb = mag2(b);\n        if (na < nb) return true;\n        if (na > nb) return false;\n\n        if (a.real() < b.real()) return true;\n        if (a.real() > b.real()) return false;\n\n        return a.imag() < b.imag();\n    };\n\n    // Parallel odd-even transposition sort.\n    // In each phase, compared/swapped pairs are disjoint, so the loop is safe\n    // to parallelize. The implicit barrier at the end of omp for ensures that\n    // all swaps in one phase complete before the next phase starts.\n    #pragma omp parallel\n    {\n        for (std::size_t phase = 0; phase < n; ++phase) {\n            const std::size_t start = phase % 2;\n\n            #pragma omp for schedule(static)\n            for (std::ptrdiff_t i = static_cast<std::ptrdiff_t>(start);\n                 i < static_cast<std::ptrdiff_t>(n - 1);\n                 i += 2) {\n                std::complex<double> &a = x[static_cast<std::size_t>(i)];\n                std::complex<double> &b = x[static_cast<std::size_t>(i + 1)];\n                if (lessByMagnitude(b, a)) {\n                    std::swap(a, b);\n                }\n            }\n        }\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <complex>\n#include <algorithm>\n#include <cstddef>\n#include <omp.h>\n\nvoid sortComplexByMagnitude(std::vector<std::complex<double>> &x) {\n    const std::size_t n = x.size();\n    if (n < 2) {\n        return;\n    }\n\n    auto mag2 = [](const std::complex<double>& z) -> double {\n        return std::norm(z);\n    };\n\n    auto lessByMagnitude = [&](const std::complex<double>& a,\n                               const std::complex<double>& b) -> bool {\n        const double na = mag2(a);\n        const double nb = mag2(b);\n        if (na < nb) return true;\n        if (na > nb) return false;\n\n        if (a.real() < b.real()) return true;\n        if (a.real() > b.real()) return false;\n\n        return a.imag() < b.imag();\n    };\n\n    // Parallel odd-even transposition sort.\n    // In each phase, compared/swapped pairs are disjoint, so the loop is safe\n    // to parallelize. The implicit barrier at the end of omp for ensures that\n    // all swaps in one phase complete before the next phase starts.\n    #pragma omp parallel\n    {\n        for (std::size_t phase = 0; phase < n; ++phase) {\n            const std::size_t start = phase % 2;\n\n            #pragma omp for schedule(static)\n            for (std::ptrdiff_t i = static_cast<std::ptrdiff_t>(start);\n                 i < static_cast<std::ptrdiff_t>(n - 1);\n                 i += 2) {\n                std::complex<double> &a = x[static_cast<std::size_t>(i)];\n                std::complex<double> &b = x[static_cast<std::size_t>(i + 1)];\n                if (lessByMagnitude(b, a)) {\n                    std::swap(a, b);\n                }\n            }\n        }\n    }\n}"
+}

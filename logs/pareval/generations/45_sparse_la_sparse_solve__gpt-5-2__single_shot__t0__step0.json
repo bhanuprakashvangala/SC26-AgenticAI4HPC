@@ -1,0 +1,50 @@
+{
+  "ts": "2026-08-08T00:04:16.612165+00:00",
+  "model": "gpt-5.2",
+  "api_response": {
+    "id": "chatcmpl-EAOphUjhJT1JOzso6HdxqqNae7zF5",
+    "served_model": "gpt-5.2-2025-12-11",
+    "created": 1786147445,
+    "system_fingerprint": null,
+    "usage": {
+      "completion_tokens": 1112,
+      "prompt_tokens": 236,
+      "total_tokens": 1348,
+      "completion_tokens_details": {
+        "accepted_prediction_tokens": 0,
+        "audio_tokens": 0,
+        "reasoning_tokens": 0,
+        "rejected_prediction_tokens": 0
+      },
+      "prompt_tokens_details": {
+        "audio_tokens": 0,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "latency_checkpoint": {
+        "engine_tbt_ms": 8,
+        "engine_ttft_ms": 45,
+        "engine_ttlt_ms": 8693,
+        "pre_inference_ms": 98,
+        "service_tbt_ms": 8,
+        "service_ttft_ms": 223,
+        "service_ttlt_ms": 8834,
+        "total_duration_ms": 8746,
+        "user_visible_ttft_ms": 125
+      }
+    },
+    "finish_reason": "stop"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct COOElement {\n   size_t row, column;\n   double value;\n};\n\n/* Solve the sparse linear system Ax=b for x.\n   A is a sparse NxN matrix in COO format. x and b are dense vectors with N elements.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: A=[{0,0,1}, {0,1,1}, {1,1,-2}] b=[1,4]\n   output: x=[3,-2]\n*/\nvoid solveLinearSystem(std::vector<COOElement> const& A, std::vector<double> const& b, std::vector<double> &x, size_t N) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <cstddef>\n#include <cmath>\n#include <algorithm>\n#include <omp.h>\n\nstruct COOElement {\n   size_t row, column;\n   double value;\n};\n\nvoid solveLinearSystem(std::vector<COOElement> const& A,\n                       std::vector<double> const& b,\n                       std::vector<double> &x,\n                       size_t N)\n{\n    x.assign(N, 0.0);\n    if (N == 0) return;\n    if (b.size() != N) return; // basic guard; could also throw in real code\n\n    // Convert COO -> CSR for safe, deterministic parallel SpMV without atomics.\n    std::vector<size_t> rowPtr(N + 1, 0);\n    for (const auto& e : A) {\n        if (e.row < N && e.column < N) rowPtr[e.row + 1]++;\n    }\n    for (size_t i = 0; i < N; ++i) rowPtr[i + 1] += rowPtr[i];\n\n    std::vector<size_t> colInd(rowPtr[N]);\n    std::vector<double> values(rowPtr[N]);\n\n    std::vector<size_t> next = rowPtr;\n    for (const auto& e : A) {\n        if (e.row >= N || e.column >= N) continue;\n        size_t pos = next[e.row]++;\n        colInd[pos] = e.column;\n        values[pos] = e.value;\n    }\n\n    // Helper lambdas: y = A*x and y = A^T*x in CSR (A stored by rows).\n    auto spmv = [&](const std::vector<double>& in, std::vector<double>& out) {\n        out.assign(N, 0.0);\n        #pragma omp parallel for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            double sum = 0.0;\n            for (size_t p = rowPtr[i]; p < rowPtr[i + 1]; ++p) {\n                sum += values[p] * in[colInd[p]];\n            }\n            out[i] = sum;\n        }\n    };\n\n    auto spmv_transpose = [&](const std::vector<double>& in, std::vector<double>& out) {\n        // Need atomics because many rows contribute to same column.\n        out.assign(N, 0.0);\n        #pragma omp parallel for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            double xi = in[i];\n            for (size_t p = rowPtr[i]; p < rowPtr[i + 1]; ++p) {\n                size_t j = colInd[p];\n                double v = values[p] * xi;\n                #pragma omp atomic\n                out[j] += v;\n            }\n        }\n    };\n\n    // Conjugate Gradient on normal equations: (A^T A) x = A^T b\n    // Works for general (possibly nonsymmetric) A; assumes consistent/solvable.\n    const int maxIters = std::max<int>(1000, static_cast<int>(10 * N));\n    const double tol = 1e-12;\n\n    std::vector<double> Atb(N, 0.0);\n    spmv_transpose(b, Atb);\n\n    // r = Atb - (A^T A) x; with x=0 => r=Atb\n    std::vector<double> r = Atb;\n    std::vector<double> p = r;\n\n    auto dot = [&](const std::vector<double>& u, const std::vector<double>& v) -> double {\n        double s = 0.0;\n        #pragma omp parallel for reduction(+:s) schedule(static)\n        for (size_t i = 0; i < N; ++i) s += u[i] * v[i];\n        return s;\n    };\n\n    double rr = dot(r, r);\n    if (std::sqrt(rr) <= tol) return;\n\n    std::vector<double> Ap_tmp(N, 0.0), Ap(N, 0.0);\n\n    for (int k = 0; k < maxIters; ++k) {\n        // Ap = (A^T A) p\n        spmv(p, Ap_tmp);              // Ap_tmp = A p\n        spmv_transpose(Ap_tmp, Ap);   // Ap = A^T (A p)\n\n        double pAp = dot(p, Ap);\n        if (std::abs(pAp) < 1e-30) break;\n\n        double alpha = rr / pAp;\n\n        #pragma omp parallel for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            x[i] += alpha * p[i];\n            r[i] -= alpha * Ap[i];\n        }\n\n        double rr_new = dot(r, r);\n        if (std::sqrt(rr_new) <= tol) break;\n\n        double beta = rr_new / rr;\n\n        #pragma omp parallel for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            p[i] = r[i] + beta * p[i];\n        }\n\n        rr = rr_new;\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <cstddef>\n#include <cmath>\n#include <algorithm>\n#include <omp.h>\n\nstruct COOElement {\n   size_t row, column;\n   double value;\n};\n\nvoid solveLinearSystem(std::vector<COOElement> const& A,\n                       std::vector<double> const& b,\n                       std::vector<double> &x,\n                       size_t N)\n{\n    x.assign(N, 0.0);\n    if (N == 0) return;\n    if (b.size() != N) return; // basic guard; could also throw in real code\n\n    // Convert COO -> CSR for safe, deterministic parallel SpMV without atomics.\n    std::vector<size_t> rowPtr(N + 1, 0);\n    for (const auto& e : A) {\n        if (e.row < N && e.column < N) rowPtr[e.row + 1]++;\n    }\n    for (size_t i = 0; i < N; ++i) rowPtr[i + 1] += rowPtr[i];\n\n    std::vector<size_t> colInd(rowPtr[N]);\n    std::vector<double> values(rowPtr[N]);\n\n    std::vector<size_t> next = rowPtr;\n    for (const auto& e : A) {\n        if (e.row >= N || e.column >= N) continue;\n        size_t pos = next[e.row]++;\n        colInd[pos] = e.column;\n        values[pos] = e.value;\n    }\n\n    // Helper lambdas: y = A*x and y = A^T*x in CSR (A stored by rows).\n    auto spmv = [&](const std::vector<double>& in, std::vector<double>& out) {\n        out.assign(N, 0.0);\n        #pragma omp parallel for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            double sum = 0.0;\n            for (size_t p = rowPtr[i]; p < rowPtr[i + 1]; ++p) {\n                sum += values[p] * in[colInd[p]];\n            }\n            out[i] = sum;\n        }\n    };\n\n    auto spmv_transpose = [&](const std::vector<double>& in, std::vector<double>& out) {\n        // Need atomics because many rows contribute to same column.\n        out.assign(N, 0.0);\n        #pragma omp parallel for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            double xi = in[i];\n            for (size_t p = rowPtr[i]; p < rowPtr[i + 1]; ++p) {\n                size_t j = colInd[p];\n                double v = values[p] * xi;\n                #pragma omp atomic\n                out[j] += v;\n            }\n        }\n    };\n\n    // Conjugate Gradient on normal equations: (A^T A) x = A^T b\n    // Works for general (possibly nonsymmetric) A; assumes consistent/solvable.\n    const int maxIters = std::max<int>(1000, static_cast<int>(10 * N));\n    const double tol = 1e-12;\n\n    std::vector<double> Atb(N, 0.0);\n    spmv_transpose(b, Atb);\n\n    // r = Atb - (A^T A) x; with x=0 => r=Atb\n    std::vector<double> r = Atb;\n    std::vector<double> p = r;\n\n    auto dot = [&](const std::vector<double>& u, const std::vector<double>& v) -> double {\n        double s = 0.0;\n        #pragma omp parallel for reduction(+:s) schedule(static)\n        for (size_t i = 0; i < N; ++i) s += u[i] * v[i];\n        return s;\n    };\n\n    double rr = dot(r, r);\n    if (std::sqrt(rr) <= tol) return;\n\n    std::vector<double> Ap_tmp(N, 0.0), Ap(N, 0.0);\n\n    for (int k = 0; k < maxIters; ++k) {\n        // Ap = (A^T A) p\n        spmv(p, Ap_tmp);              // Ap_tmp = A p\n        spmv_transpose(Ap_tmp, Ap);   // Ap = A^T (A p)\n\n        double pAp = dot(p, Ap);\n        if (std::abs(pAp) < 1e-30) break;\n\n        double alpha = rr / pAp;\n\n        #pragma omp parallel for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            x[i] += alpha * p[i];\n            r[i] -= alpha * Ap[i];\n        }\n\n        double rr_new = dot(r, r);\n        if (std::sqrt(rr_new) <= tol) break;\n\n        double beta = rr_new / rr;\n\n        #pragma omp parallel for schedule(static)\n        for (size_t i = 0; i < N; ++i) {\n            p[i] = r[i] + beta * p[i];\n        }\n\n        rr = rr_new;\n    }\n}"
+}

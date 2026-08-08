@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T04:35:21.491667+00:00",
+  "task": "21_histogram_bin_0-100",
+  "type": "histogram",
+  "model": "gpt-5.2",
+  "condition": "single_shot",
+  "trial": 6,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Vector x contains values between 0 and 100, inclusive. Count the number of\n   values in [0,10), [10, 20), [20, 30), ... and store the counts in `bins`.\n   Use OpenMP to compute in parallel.\n   Example:\n\n   input: [7, 32, 95, 12, 39, 32, 11, 71, 70, 66]\n   output: [1, 2, 0, 3, 0, 0, 1, 2, 0, 1]\n*/\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 10> local{};\n        local.fill(0);\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            double v = x[i];\n\n            // Values are stated to be in [0, 100], inclusive.\n            // Bin edges: [0,10), [10,20), ..., [90,100] (inclusive at 100).\n            int b = static_cast<int>(v / 10.0);\n            if (b < 0) b = 0;\n            if (b > 9) b = 9;\n            ++local[static_cast<std::size_t>(b)];\n        }\n\n        #pragma omp critical\n        {\n            for (std::size_t b = 0; b < 10; ++b) {\n                bins[b] += local[b];\n            }\n        }\n    }\n}\n```"
+    }
+  ],
+  "final_code": "#include <array>\n#include <cstddef>\n#include <vector>\n#include <omp.h>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 10> local{};\n        local.fill(0);\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            double v = x[i];\n\n            // Values are stated to be in [0, 100], inclusive.\n            // Bin edges: [0,10), [10,20), ..., [90,100] (inclusive at 100).\n            int b = static_cast<int>(v / 10.0);\n            if (b < 0) b = 0;\n            if (b > 9) b = 9;\n            ++local[static_cast<std::size_t>(b)];\n        }\n\n        #pragma omp critical\n        {\n            for (std::size_t b = 0; b < 10; ++b) {\n                bins[b] += local[b];\n            }\n        }\n    }\n}",
+  "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
+  "robust": true
+}

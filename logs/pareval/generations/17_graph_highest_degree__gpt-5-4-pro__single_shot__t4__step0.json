@@ -1,0 +1,35 @@
+{
+  "ts": "2026-08-08T02:04:43.360653+00:00",
+  "model": "gpt-5.4-pro",
+  "api_response": {
+    "id": "resp_066849072df2e405006a768e8ae2f48196ba4f7b0fa9d294ae",
+    "served_model": "gpt-5.4-pro",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 223,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 1549,
+      "output_tokens_details": {
+        "reasoning_tokens": 1322
+      },
+      "total_tokens": 1772
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the highest node degree in the undirected graph. The graph is defined in the adjacency matrix A.\n   A is an NxN adjacency matrix stored in row-major. A is an undirected graph.\n   Use OpenMP to compute in parallel.\n   Example:\n\n\t input: [[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 1], [1, 1, 1, 0]]\n   output: 3\n*/\nint maxDegree(std::vector<int> const& A, size_t N) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <omp.h>\n#include <cstddef>\n#include <vector>\n\nusing std::size_t;\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    // Guard against invalid/incomplete input and size_t overflow in N*N.\n    if (A.size() / N < N) {\n        return 0;\n    }\n\n    int max_degree = 0;\n\n    #pragma omp parallel for reduction(max:max_degree) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int degree = 0;\n        const size_t row_offset = static_cast<size_t>(i) * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[row_offset + j];\n        }\n\n        if (degree > max_degree) {\n            max_degree = degree;\n        }\n    }\n\n    return max_degree;\n}\n```",
+  "extracted_code": "#include <omp.h>\n#include <cstddef>\n#include <vector>\n\nusing std::size_t;\n\nint maxDegree(std::vector<int> const& A, size_t N) {\n    if (N == 0) {\n        return 0;\n    }\n\n    // Guard against invalid/incomplete input and size_t overflow in N*N.\n    if (A.size() / N < N) {\n        return 0;\n    }\n\n    int max_degree = 0;\n\n    #pragma omp parallel for reduction(max:max_degree) schedule(static)\n    for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n        int degree = 0;\n        const size_t row_offset = static_cast<size_t>(i) * N;\n\n        for (size_t j = 0; j < N; ++j) {\n            degree += A[row_offset + j];\n        }\n\n        if (degree > max_degree) {\n            max_degree = degree;\n        }\n    }\n\n    return max_degree;\n}"
+}

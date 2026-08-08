@@ -1,0 +1,27 @@
+{
+  "ts": "2026-08-08T07:26:41.987545+00:00",
+  "task": "33_scan_reverse_prefix_sum",
+  "type": "scan",
+  "model": "gpt-5.4-pro",
+  "condition": "single_shot",
+  "trial": 1,
+  "steps": [],
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\n/* Compute the reverse prefix sum of the vector x into output.\n   Use OpenMP to compute in parallel.\n   Examples:\n   \n   input: [1, 7, 4, 6, 6, 2]\n   output: [2, 8, 14, 18, 25, 26]\n\n   input: [3, 3, 7, 1, -2]\n   output: [-2, -1, 6, 9, 12]\n*/\nvoid reversePrefixSum(std::vector<int> const& x, std::vector<int> &output) {"
+    },
+    {
+      "role": "assistant",
+      "content": "```cpp\n\n```"
+    }
+  ],
+  "final_code": "",
+  "final_verdict": "CRASH",
+  "sweep": "",
+  "robust": false
+}

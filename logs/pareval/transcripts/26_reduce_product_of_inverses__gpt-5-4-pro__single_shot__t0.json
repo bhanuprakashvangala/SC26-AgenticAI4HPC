@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-10T20:43:33.398116+00:00",
+  "ts": "2026-08-08T05:55:33.886858+00:00",
   "task": "26_reduce_product_of_inverses",
   "type": "reduce",
   "model": "gpt-5.4-pro",
@@ -17,10 +17,11 @@
     },
     {
       "role": "assistant",
-      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double result = 1.0;\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(x.size());\n\n    #pragma omp parallel for reduction(* : result) schedule(static)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        const double v = x[static_cast<std::size_t>(i)];\n        result *= ((i & 1) == 0) ? v : (1.0 / v);\n    }\n\n    return result;\n}\n```"
+      "content": "```cpp\n#include <vector>\n#include <cstddef>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double product = 1.0;\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(x.size());\n\n    #pragma omp parallel for default(none) shared(x, n) reduction(* : product)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        const double factor =\n            ((i & 1) == 0) ? x[static_cast<std::size_t>(i)]\n                           : 1.0 / x[static_cast<std::size_t>(i)];\n        product *= factor;\n    }\n\n    return product;\n}\n```"
     }
   ],
-  "final_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double result = 1.0;\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(x.size());\n\n    #pragma omp parallel for reduction(* : result) schedule(static)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        const double v = x[static_cast<std::size_t>(i)];\n        result *= ((i & 1) == 0) ? v : (1.0 / v);\n    }\n\n    return result;\n}",
+  "final_code": "#include <vector>\n#include <cstddef>\n#include <omp.h>\n\ndouble productWithInverses(std::vector<double> const& x) {\n    double product = 1.0;\n    const std::ptrdiff_t n = static_cast<std::ptrdiff_t>(x.size());\n\n    #pragma omp parallel for default(none) shared(x, n) reduction(* : product)\n    for (std::ptrdiff_t i = 0; i < n; ++i) {\n        const double factor =\n            ((i & 1) == 0) ? x[static_cast<std::size_t>(i)]\n                           : 1.0 / x[static_cast<std::size_t>(i)];\n        product *= factor;\n    }\n\n    return product;\n}",
   "final_verdict": "NOT_ROBUST",
+  "sweep": "t1=0/2 t2=0/2 t4=0/2 t8=0/2",
   "robust": false
 }

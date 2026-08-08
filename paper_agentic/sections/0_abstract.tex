@@ -2,14 +2,14 @@
 Agentic systems now write HPC code and decide for themselves when it is done:
 the agent generates an OpenMP kernel, runs it, compares the output against a
 trusted serial reference, and accepts the draft if they agree. That
-acceptance test is the agent's objective---and, increasingly, the verifiable
+acceptance test is the agent's objective - and, increasingly, the verifiable
 reward a post-training loop optimizes. We show it is the wrong one, and we
 build the agent that sees why.
 
 Our contribution is a \emph{grounded agentic diagnostician} for parallel code:
 an LLM that answers questions about a generated program only by calling real
-measurement tools---compile, sweep thread counts, time against the serial
-reference, check for races---and a \emph{performance-critic} agent that refuses
+measurement tools - compile, sweep thread counts, time against the serial
+reference, check for races - and a \emph{performance-critic} agent that refuses
 any claim a measurement does not support, the way a grounded explanation refuses
 an attribution it cannot compute. Building it forced the finding that motivates
 it. Delete every \texttt{\#pragma omp} from a correct program and it stays

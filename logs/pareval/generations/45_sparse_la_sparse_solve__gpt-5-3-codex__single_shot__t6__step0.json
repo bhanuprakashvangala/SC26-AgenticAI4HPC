@@ -1,0 +1,35 @@
+{
+  "ts": "2026-08-08T00:06:29.296422+00:00",
+  "model": "gpt-5.3-codex",
+  "api_response": {
+    "id": "resp_0cbde918234e0e56006a7672fc6c208197a6b4ae991f311474",
+    "served_model": "gpt-5.3-codex",
+    "created": null,
+    "system_fingerprint": null,
+    "usage": {
+      "input_tokens": 236,
+      "input_tokens_details": {
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+      },
+      "output_tokens": 622,
+      "output_tokens_details": {
+        "reasoning_tokens": 0
+      },
+      "total_tokens": 858
+    },
+    "finish_reason": "completed"
+  },
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are an expert HPC engineer. Implement the requested function using OpenMP so it is correct under EVERY thread count. Return the COMPLETE, self-contained function definition, restating the exact signature and including any #include directives it needs, in a single ```cpp code block. Do not include a main(). Never write a shared scalar or array element from multiple threads without reduction, atomic, or critical."
+    },
+    {
+      "role": "user",
+      "content": "#include <omp.h>\n\nstruct COOElement {\n   size_t row, column;\n   double value;\n};\n\n/* Solve the sparse linear system Ax=b for x.\n   A is a sparse NxN matrix in COO format. x and b are dense vectors with N elements.\n   Use OpenMP to compute in parallel.\n   Example:\n   \n   input: A=[{0,0,1}, {0,1,1}, {1,1,-2}] b=[1,4]\n   output: x=[3,-2]\n*/\nvoid solveLinearSystem(std::vector<COOElement> const& A, std::vector<double> const& b, std::vector<double> &x, size_t N) {"
+    }
+  ],
+  "raw_response": "```cpp\n#include <vector>\n#include <cmath>\n#include <cstddef>\n#include <omp.h>\n\nstruct COOElement {\n    size_t row, column;\n    double value;\n};\n\n/* Solve the sparse linear system Ax=b for x.\n   A is a sparse NxN matrix in COO format. x and b are dense vectors with N elements.\n   Uses a parallel Jacobi iterative method.\n*/\nvoid solveLinearSystem(std::vector<COOElement> const& A, std::vector<double> const& b, std::vector<double> &x, size_t N) {\n    x.assign(N, 0.0);\n    if (N == 0) return;\n\n    // Build diagonal and row-wise COO buckets for efficient Jacobi updates.\n    std::vector<double> diag(N, 0.0);\n    std::vector<std::vector<std::pair<size_t, double>>> rows(N);\n\n    for (const auto& e : A) {\n        if (e.row < N && e.column < N) {\n            rows[e.row].push_back({e.column, e.value});\n            if (e.row == e.column) diag[e.row] += e.value;\n        }\n    }\n\n    // Guard against zero diagonal entries.\n    for (size_t i = 0; i < N; ++i) {\n        if (std::abs(diag[i]) < 1e-15) {\n            diag[i] = (diag[i] >= 0.0 ? 1e-15 : -1e-15);\n        }\n    }\n\n    std::vector<double> x_new(N, 0.0);\n\n    const size_t maxIters = 10000;\n    const double tol = 1e-10;\n\n    for (size_t iter = 0; iter < maxIters; ++iter) {\n        double maxDiff = 0.0;\n\n        #pragma omp parallel for reduction(max:maxDiff)\n        for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n            double sigma = 0.0;\n            for (const auto& cv : rows[static_cast<size_t>(i)]) {\n                size_t j = cv.first;\n                double aij = cv.second;\n                if (j != static_cast<size_t>(i)) {\n                    sigma += aij * x[j];\n                }\n            }\n\n            double bi = (static_cast<size_t>(i) < b.size()) ? b[static_cast<size_t>(i)] : 0.0;\n            x_new[static_cast<size_t>(i)] = (bi - sigma) / diag[static_cast<size_t>(i)];\n\n            double d = std::abs(x_new[static_cast<size_t>(i)] - x[static_cast<size_t>(i)]);\n            if (d > maxDiff) maxDiff = d;\n        }\n\n        x.swap(x_new);\n\n        if (maxDiff < tol) break;\n    }\n}\n```",
+  "extracted_code": "#include <vector>\n#include <cmath>\n#include <cstddef>\n#include <omp.h>\n\nstruct COOElement {\n    size_t row, column;\n    double value;\n};\n\n/* Solve the sparse linear system Ax=b for x.\n   A is a sparse NxN matrix in COO format. x and b are dense vectors with N elements.\n   Uses a parallel Jacobi iterative method.\n*/\nvoid solveLinearSystem(std::vector<COOElement> const& A, std::vector<double> const& b, std::vector<double> &x, size_t N) {\n    x.assign(N, 0.0);\n    if (N == 0) return;\n\n    // Build diagonal and row-wise COO buckets for efficient Jacobi updates.\n    std::vector<double> diag(N, 0.0);\n    std::vector<std::vector<std::pair<size_t, double>>> rows(N);\n\n    for (const auto& e : A) {\n        if (e.row < N && e.column < N) {\n            rows[e.row].push_back({e.column, e.value});\n            if (e.row == e.column) diag[e.row] += e.value;\n        }\n    }\n\n    // Guard against zero diagonal entries.\n    for (size_t i = 0; i < N; ++i) {\n        if (std::abs(diag[i]) < 1e-15) {\n            diag[i] = (diag[i] >= 0.0 ? 1e-15 : -1e-15);\n        }\n    }\n\n    std::vector<double> x_new(N, 0.0);\n\n    const size_t maxIters = 10000;\n    const double tol = 1e-10;\n\n    for (size_t iter = 0; iter < maxIters; ++iter) {\n        double maxDiff = 0.0;\n\n        #pragma omp parallel for reduction(max:maxDiff)\n        for (std::ptrdiff_t i = 0; i < static_cast<std::ptrdiff_t>(N); ++i) {\n            double sigma = 0.0;\n            for (const auto& cv : rows[static_cast<size_t>(i)]) {\n                size_t j = cv.first;\n                double aij = cv.second;\n                if (j != static_cast<size_t>(i)) {\n                    sigma += aij * x[j];\n                }\n            }\n\n            double bi = (static_cast<size_t>(i) < b.size()) ? b[static_cast<size_t>(i)] : 0.0;\n            x_new[static_cast<size_t>(i)] = (bi - sigma) / diag[static_cast<size_t>(i)];\n\n            double d = std::abs(x_new[static_cast<size_t>(i)] - x[static_cast<size_t>(i)]);\n            if (d > maxDiff) maxDiff = d;\n        }\n\n        x.swap(x_new);\n\n        if (maxDiff < tol) break;\n    }\n}"
+}

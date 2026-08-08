@@ -1,5 +1,5 @@
 {
-  "ts": "2026-07-10T20:43:33.389555+00:00",
+  "ts": "2026-08-08T04:35:21.493983+00:00",
   "task": "21_histogram_bin_0-100",
   "type": "histogram",
   "model": "gpt-5.3-codex",
@@ -17,10 +17,11 @@
     },
     {
       "role": "assistant",
-      "content": "```cpp\n#include <omp.h>\n#include <vector>\n#include <array>\n#include <cstddef>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 10> local_bins{};\n        local_bins.fill(0);\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            double v = x[i];\n\n            // Map [0,100] into bins [0..9]:\n            // [0,10), [10,20), ..., [90,100]\n            int idx = static_cast<int>(v / 10.0);\n            if (idx < 0) idx = 0;\n            if (idx > 9) idx = 9;\n\n            local_bins[static_cast<std::size_t>(idx)]++;\n        }\n\n        #pragma omp critical\n        {\n            for (std::size_t b = 0; b < 10; ++b) {\n                bins[b] += local_bins[b];\n            }\n        }\n    }\n}\n```"
+      "content": "```cpp\n#include <omp.h>\n#include <vector>\n#include <array>\n#include <cstddef>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 10> local_bins{};\n        local_bins.fill(0);\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            double v = x[i];\n\n            // Input is specified to be in [0, 100], but clamp defensively.\n            int idx = static_cast<int>(v / 10.0);\n            if (idx < 0) idx = 0;\n            if (idx > 9) idx = 9; // puts 100 into the last bin\n\n            local_bins[static_cast<std::size_t>(idx)]++;\n        }\n\n        #pragma omp critical\n        {\n            for (std::size_t b = 0; b < 10; ++b) {\n                bins[b] += local_bins[b];\n            }\n        }\n    }\n}\n```"
     }
   ],
-  "final_code": "#include <omp.h>\n#include <vector>\n#include <array>\n#include <cstddef>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 10> local_bins{};\n        local_bins.fill(0);\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            double v = x[i];\n\n            // Map [0,100] into bins [0..9]:\n            // [0,10), [10,20), ..., [90,100]\n            int idx = static_cast<int>(v / 10.0);\n            if (idx < 0) idx = 0;\n            if (idx > 9) idx = 9;\n\n            local_bins[static_cast<std::size_t>(idx)]++;\n        }\n\n        #pragma omp critical\n        {\n            for (std::size_t b = 0; b < 10; ++b) {\n                bins[b] += local_bins[b];\n            }\n        }\n    }\n}",
+  "final_code": "#include <omp.h>\n#include <vector>\n#include <array>\n#include <cstddef>\n\nvoid binsBy10Count(std::vector<double> const& x, std::array<size_t, 10> &bins) {\n    bins.fill(0);\n\n    #pragma omp parallel\n    {\n        std::array<size_t, 10> local_bins{};\n        local_bins.fill(0);\n\n        #pragma omp for nowait\n        for (std::size_t i = 0; i < x.size(); ++i) {\n            double v = x[i];\n\n            // Input is specified to be in [0, 100], but clamp defensively.\n            int idx = static_cast<int>(v / 10.0);\n            if (idx < 0) idx = 0;\n            if (idx > 9) idx = 9; // puts 100 into the last bin\n\n            local_bins[static_cast<std::size_t>(idx)]++;\n        }\n\n        #pragma omp critical\n        {\n            for (std::size_t b = 0; b < 10; ++b) {\n                bins[b] += local_bins[b];\n            }\n        }\n    }\n}",
   "final_verdict": "ROBUST_CORRECT",
+  "sweep": "t1=2/2 t2=2/2 t4=2/2 t8=2/2",
   "robust": true
 }

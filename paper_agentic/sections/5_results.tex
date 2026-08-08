@@ -37,8 +37,8 @@ This is Proposition~\ref{prop:degeneracy}, executed rather than argued.
 \includegraphics[width=\columnwidth]{figs/projection}
 \caption{The degeneracy, measured. Each point is one accepted program, before
 (x) and after (y) deleting every OpenMP directive. Left: correctness-only
-reward---all points on the diagonal, no program loses anything. Right: the
-gated reward---every point collapses to the $1/n$ floor. \note{make this Fig.
+reward - all points on the diagonal, no program loses anything. Right: the
+gated reward - every point collapses to the $1/n$ floor. \note{make this Fig.
 1 and refer to it in the introduction}}
 \label{fig:projection}
 \end{figure}
@@ -77,9 +77,9 @@ single task alone (histogram) two equally-certified programs range from
 \end{figure}
 
 We are deliberately careful about mechanism. The synchronization idiom a model
-chose does not cleanly predict poor scaling---programs using
+chose does not cleanly predict poor scaling - programs using
 \texttt{critical} frequently used it for a cheap $O(\text{threads})$ merge of
-per-thread partials and scaled well---so we make no claim that models
+per-thread partials and scaled well - so we make no claim that models
 systematically oversynchronize. The defensible claim is narrower and stronger
 for being exact: among programs an output-only reward rates identically,
 measured scaling varies by a factor of roughly 20 (\WorstTaskRange$\times$ on a
@@ -95,16 +95,16 @@ Equation~\eqref{eq:deadgroup} gives the probability that a group of $k$ i.i.d.\
 samples is dead, and we average it over the \NTasks\ tasks. Because our study
 draws one sample per model--condition cell rather than $k$ samples per prompt,
 this is the dead-group rate implied by the observed pass rates, not a resampling
-of a $k$-sample pool---a falsifiable prediction a training run can check against.
+of a $k$-sample pool - a falsifiable prediction a training run can check against.
 
 Pooled single-shot correctness is \PassRate\%, and \SatTaskFrac\% of tasks have
-a per-task pass rate of exactly $1$---for those tasks, \emph{every} group is
+a per-task pass rate of exactly $1$ - for those tasks, \emph{every} group is
 dead under $\Rcorr$ regardless of $k$. Overall, the dead-group fraction under
 $\Rcorr$ is \DeadGroupCorrFour\% at $k=4$, \DeadGroupCorrEight\% at $k=8$, and
 \DeadGroupCorrSixteen\% at $k=16$. Under $\Rgate$, whose continuous efficiency
 term rarely ties across correct programs, a group dies only when all $k$ samples
 are \emph{incorrect}, so the figures fall to \DeadGroupGateFour\%,
-\DeadGroupGateEight\%, and \DeadGroupGateSixteen\%---the residual being the few
+\DeadGroupGateEight\%, and \DeadGroupGateSixteen\% - the residual being the few
 tasks no sample solves, where no reward can help and which does not grow with
 $k$.
 
@@ -119,8 +119,8 @@ rises; a reward with a continuous performance term does not.}
 
 The reading is that a correctness-only objective is self-limiting: the better
 the policy gets, the less it can learn. This is not a claim about our
-particular models---it follows from Equation~\eqref{eq:deadgroup} for any
-$p_t \to 1$---but it is worth having measured, because the magnitude at
+particular models - it follows from Equation~\eqref{eq:deadgroup} for any
+$p_t \to 1$ - but it is worth having measured, because the magnitude at
 realistic pass rates is larger than intuition suggests.
 
 \subsection{Reward bake-off}
@@ -128,16 +128,25 @@ realistic pass rates is larger than intuition suggests.
 
 Treating the accepted programs for a task as the candidates a best-of-$N$ or
 group-relative selection chooses among, we asked which program each reward
-selects. $\Rcorr$ is indifferent---every accepted program ties at $1$, so an
+selects. $\Rcorr$ is indifferent - every accepted program ties at $1$, so an
 uninformed selection realizes the pool mean in expectation.
 
 Under matched selection over identical samples, the correctness-only reward
-realizes a mean 8-thread speedup of \BoNCorr$\times$ against the gated
-reward's \BoNGate$\times$ (\BoNGain\% higher), with the oracle at
-\BoNOracle$\times$. The two rewards select a different program in
-\PoolsDiffering\ of the tasks with more than one accepted candidate; wherever
-they differ, the correctness-only choice leaves measured speedup on the table
-that the gated choice recovers at no cost in correctness.
+realizes a mean 8-thread self-speedup of \BoNCorr$\times$---an uninformed pick,
+since it ties every candidate at $1$. The reference-anchored gate we advocate
+raises this to \BoNGate$\times$ (\BoNGain\% higher). That margin is modest, and
+the reason is instructive: the self-anchored variant would instead select the
+fastest-scaling program on every task, reaching the oracle at
+\BoNGateSelf$\times$ (\BoNGainSelf\% over correctness-only), but it earns that
+gain by rewarding self-speedup, which H4 fabricates by slowing the one-thread
+baseline (Section~\ref{sec:results-hacks}). The reference anchor gives up most of
+the selection gain precisely to close that attack; hack-resistance and
+selection sharpness trade against each other, and we take resistance. Either
+way the two rewards select a different program in \PoolsDiffering\ of the tasks
+with more than one accepted candidate, and correctness-only leaves on the table
+speedup that any performance-aware gate recovers at no cost in correctness. The
+result of the experiment is not the size of the margin but that the correctness
+reward cannot make the choice at all.
 
 We label this analysis as a proxy. Best-of-$N$ captures the selection component
 of group-relative optimization but not its distribution-sharpening
@@ -151,7 +160,7 @@ objectives, not as a simulation of training.
 
 Figure~\ref{fig:hackheat} scores every reward formulation against every \PG\
 class. Each candidate is functionally correct, so R1 awards all of them the
-maximum---\HackCorrPassRate\% by construction. This is the compact statement of
+maximum - \HackCorrPassRate\% by construction. This is the compact statement of
 the paper: a reward that accepts every entry in an adversarial suite designed
 to strip out parallelism is not measuring parallelism.
 
@@ -192,12 +201,12 @@ channel (H7); the timed region encloses the entire driver call, closing the
 timing-region channel (H6). What the reward reads is invariant to correctness
 but not to performance: as Observation~\ref{obs:invariance} requires, deleting or
 reshaping directives cannot change the computed output, only the wall
-time---which is precisely why an output-equivalence gate is blind to it. Because
+time - which is precisely why an output-equivalence gate is blind to it. Because
 efficiency is measured on one machine it is a quantity relative to that machine;
 we do not claim cross-architecture transfer and flag it as a limitation
 (Section~\ref{sec:discussion}).
 
-\subsection{Correctness is saturated---the premise, not the finding}
+\subsection{Correctness is saturated - the premise, not the finding}
 \label{sec:results-saturation}
 
 Finally we report the correctness measurements that motivated the whole
@@ -211,17 +220,22 @@ differential verifier yields \RobustLtwo\% (\CILtwo), a difference of
 \RobustDelta. Across \PairedCells\ paired task--model cells the two tools
 reached a different final verdict in \PairedDisagree\ cases. Excluding a
 specification ambiguity we identified by hand-inspection on the scan
-family---where every model computed a defensible reverse-indexed suffix sum
-against a reference that scans the reversed input---robust correctness is
+family - where every model computed a defensible reverse-indexed suffix sum
+against a reference that scans the reversed input - robust correctness is
 \RobustExclScan\%; we report this back as a specification ambiguity in the
 benchmark, not as a defect in the models.
 
-Archer found \NRaces\ data races in the \NAccepted\ accepted programs, while
-correctly flagging the injected controls and the \NRacesOpen\ genuine race
-shipped by the smallest open-weights model. Two independent
-instruments---output-differential and happens-before---agree that the accepted
-set is race-free.
+Archer found \NRaces\ data races in the \NAccepted\ accepted programs, and our
+differential sweep correctly caught all \NInjected\ injected race
+controls---hazards that pass an execute-once check yet fail validation on nine of
+twelve thread/rep runs---confirming that the sweep detects the order-dependence a
+single execution misses. Two independent instruments---output-differential and
+happens-before---agree that the accepted set is race-free. The failures we
+observed from the smallest open-weights models were single-thread semantic
+errors rather than data races, so we make no parallel-race claim there.
 
 The honest reading is that correctness verification remains the right first
 gate and that frontier models have made its cheapest form sufficient on
-idiomatic tasks. That is precisely why the reward cannot stop there.
+idiomatic tasks. That is precisely why the reward cannot stop there. What that
+leaves for anyone building an HPC coding agent today - and what we deliberately
+refuse to claim on this evidence - is the subject of the next section.
