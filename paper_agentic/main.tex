@@ -17,33 +17,32 @@
 \definecolor{codebg}{gray}{0.96}
 \definecolor{OliveGreen}{HTML}{1E6F3C}
 
-% \xx flags any number still awaiting data (should be none in the final build).
 \newcommand{\xx}{\textcolor{red}{\textbf{xx}}}
-% \note renders an editorial margin note in draft; make it invisible for a clean build.
 \newcommand{\note}[1]{}
 
-% theorem-like environments used by the degeneracy section
 \theoremstyle{definition}
 \newtheorem{definition}{Definition}
 \theoremstyle{plain}
 \newtheorem{proposition}{Proposition}
 \newtheorem{observation}{Observation}
 
-% - symbol macros the prose relies on - 
-\newcommand{\Rgate}{R_{\mathrm{gate}}}
+% Paper-facing terminology.
+\newcommand{\Rperf}{R_{\mathrm{perf}}}
 \newcommand{\Rcorr}{R_{\mathrm{corr}}}
 \newcommand{\serialproj}{\pi_{\mathrm{serial}}}
-\newcommand{\PG}{\textsc{ParallelGate}}
+\newcommand{\PRB}{\textsc{ParallelRewardBench}}
 \newcommand{\ParEval}{\textsc{ParEval}}
 \newcommand{\SP}{serial projection}
 
-% - real numbers derived from the frozen run pool (agent/compute_numbers.py) - 
+% Backward-compatible aliases for frozen/generated auxiliary files that still use
+% the historical names. New manuscript text should use \Rperf and \PRB.
+\newcommand{\Rgate}{\Rperf}
+\newcommand{\PG}{\PRB}
+
+% Real numbers derived from the frozen run pool.
 \input{numbers_filled}
 \input{hacks_numbers}
 \input{numbers_e7}
-% fallback: define any macro not yet backed by data as a visible red xx (providecommand
-% never overrides the real values loaded above) -- these are the E6/optional quantities
-% we did not run, flagged so no fabricated number can slip in.
 \input{numbers_fallback}
 
 \lstset{
@@ -59,7 +58,7 @@
 \begin{document}
 
 \title{Correct but Not Parallel:\\
-A Grounded Agentic Critic for LLM-Generated HPC Code}
+Performance-Aware Verifiable Rewards for AI-Generated HPC Code}
 
 \author{\IEEEauthorblockN{Anonymous Author(s)}
 \IEEEauthorblockA{\textit{Affiliation withheld for review} \\
@@ -71,12 +70,11 @@ email withheld}}
 \input{sections/0_abstract}
 
 \begin{IEEEkeywords}
-agentic AI, HPC, code generation, OpenMP, grounded diagnosis, verifiable rewards,
-RLVR, reward hacking, strong scaling, evaluation, reliability
+agentic AI, HPC, code generation, OpenMP, verifiable rewards,
+parallel performance, reward robustness, evaluation, reliability
 \end{IEEEkeywords}
 
 \input{sections/1_introduction}
-\input{sections/1b_system}
 \input{sections/2_degeneracy}
 \input{sections/3_reward}
 \input{sections/4_setup}
