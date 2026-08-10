@@ -50,10 +50,10 @@ This path requires no model access and is the easiest way to reproduce the paper
 python -m pip install -r requirements.txt
 python -m harness.analyze_scaling
 python -m agent.compute_numbers
-python -m agent.parallel_gate
+python -m agent.parallel_reward_bench
 ```
 
-`agent/parallel_gate.py` is the historical implementation filename used by the current artifact; in the paper the benchmark is named **ParallelRewardBench (PRB)**. The file will be renamed in a future artifact revision without changing the benchmark semantics.
+`agent/parallel_reward_bench.py` is the public PRB entry point. It currently wraps the frozen historical implementation so earlier artifact outputs remain reproducible while the paper-facing terminology stays consistent.
 
 ### B. Regenerate publication figures
 
