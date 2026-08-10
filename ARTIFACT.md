@@ -20,8 +20,10 @@ The current PRB release contains the adversarial cases used in the paper. PRB is
 - `harness/sanitizer_arm.py` — Archer/ThreadSanitizer cross-check.
 - `agent/diag_core.py` — offline loader for the frozen accepted-program pool.
 - `agent/compute_numbers.py` — derives paper statistics from the frozen data.
-- `agent/parallel_gate.py` — current implementation of the adversarial reward benchmark; this historical filename corresponds to **ParallelRewardBench (PRB)** in the paper.
+- `agent/parallel_reward_bench.py` — public entry point for **ParallelRewardBench (PRB)**.
 - `agent/make_paper_figs.py` — publication figure generation from frozen measurements.
+
+The historical PRB implementation remains in `agent/parallel_gate.py` so previously generated artifact outputs remain reproducible; new users should invoke `agent.parallel_reward_bench`.
 
 ### Frozen data and provenance
 
@@ -51,7 +53,7 @@ Run:
 python -m pip install -r requirements.txt
 python -m harness.analyze_scaling
 python -m agent.compute_numbers
-python -m agent.parallel_gate
+python -m agent.parallel_reward_bench
 python -m agent.make_paper_figs
 ```
 
