@@ -1,164 +1,158 @@
-"""
-compute_numbers.py  --  derive every paper number the FROZEN data actually supports, and say
-plainly which macros need an experiment we did not run (so nothing is fabricated).
+"""Compute reproducibility summary statistics from the frozen artifact data.
 
-Reads results/{scaling,pareval_runs,sanitizer}.jsonl + the generation sources via diag_core.
-Prints a report; with --write, emits paper_agentic/numbers_filled.tex with the derived macros.
-
-Honest scoping, baked in:
-  * E1 serial projection  -> STATIC (source transform); labelled as such.
-  * E3 signal collapse     -> the study logged 1 sample per (task,model,condition), not k-sampled
-                              groups, so the dead-group rate is a PREDICTION from the measured
-                              per-task pass rates: P(zero R_corr variance | k) = E_t[p_t^k+(1-p_t)^k].
-  * E6 multi-architecture  -> single verification backend (NArch=1); the cross-arch rank-instability
-                              macros are NOT derivable and are left for the reader to fill or drop.
+This module is intentionally offline: it reads the released JSON/JSONL files and
+prints the metrics that can be derived from them. With ``--write`` it stores a
+machine-readable summary in ``results/derived/summary.json``.
 """
 from __future__ import annotations
 
 import argparse
 import json
-import os
 import statistics as st
-import sys
 from collections import defaultdict
+from pathlib import Path
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import diag_core as DC
+from . import diag_core as DC
 
-R = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."))
+ROOT = Path(DC._ROOT)
 NMAX = 8
 
 
-def load(name):
-    rows = []
-    for line in open(os.path.join(R, "results", name), encoding="utf-8"):
-        line = line.strip()
-        if line:
+def _load_jsonl(path: Path) -> list[dict]:
+    rows: list[dict] = []
+    if not path.exists():
+        return rows
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.strip():
             rows.append(json.loads(line))
     return rows
 
 
-def robust(r):
-    return str(r.get("robust")).lower() == "true" or r.get("verdict") == "ROBUST_CORRECT"
+def _robust(row: dict) -> bool:
+    return str(row.get("robust")).lower() == "true" or row.get("verdict") == "ROBUST_CORRECT"
 
 
-def main(write=False):
-    sess = DC.Session(verbose=False)
-    progs = sess.programs
-    sp = [p["self_speedup8"] for p in progs if p["self_speedup8"] is not None]
-    eff = [p["parallel_efficiency8"] for p in progs if p["parallel_efficiency8"] is not None]
-    n = len(sp)
-    runs = load("pareval_runs.jsonl")
-    ss = [r for r in runs if r["condition"] == "single_shot"]
-    models = sorted({r["model"] for r in runs})
-    tasks = sorted({r["task"] for r in runs})
+def compute() -> dict:
+    session = DC.Session(verbose=False)
+    programs = [p for p in session.programs if p.get("self_speedup8") is not None]
+    runs = _load_jsonl(ROOT / "results" / "pareval_runs.jsonl")
 
-    M = {}  # macro -> (value, provenance)
+    speeds = [float(p["self_speedup8"]) for p in programs]
+    tasks = sorted({r.get("task") for r in runs if r.get("task")})
+    models = sorted({r.get("model") for r in runs if r.get("model")})
 
-    # ---- scale ----
-    M["NTasks"] = (len(tasks), "distinct ParEval tasks in the pool")
-    M["NModels"] = (len(models), "frontier models: " + ", ".join(models))
-    M["NRuns"] = (len(runs), "logged (task,model,condition) runs")
-    M["NAccepted"] = (n, "accepted + timed programs (scaling.jsonl)")
-    M["NThreadsMax"] = (NMAX, "top of the thread sweep {1,2,4,8}")
+    by_task: dict[str, list[dict]] = defaultdict(list)
+    for program in programs:
+        by_task[program["task"]].append(program)
 
-    # ---- E1 serial projection (static) ----
-    proj = [p["serial_projection"] for p in progs if p.get("serial_projection")]
-    still = sum(1 for x in proj if x["predicted_still_correct"])
-    M["SPDen"] = (len(proj), "programs with source available for projection")
-    M["SPNum"] = (still, "predicted still-correct after deleting every #pragma omp")
-    M["SPRate"] = (round(100 * still / len(proj), 1), "% (STATIC projection)")
-    M["SPRewardDeltaCorr"] = ("0.00", "exact: R_corr invariant to a schedule-only transform")
-    M["SPGateFloor"] = (round(1.0 / NMAX, 3), "gated reward of a serial program (S=1 => 1/n)")
+    widest = None
+    for task, group in by_task.items():
+        vals = [float(p["self_speedup8"]) for p in group]
+        if not vals:
+            continue
+        item = {"task": task, "min": min(vals), "max": max(vals), "span": max(vals) - min(vals)}
+        if widest is None or item["span"] > widest["span"]:
+            widest = item
 
-    # ---- E2 argmax contamination ----
-    d = sess.scaling_distribution()
-    M["SpeedMin"] = (d["self_speedup8_min"], "min self-speedup @8 among accepted")
-    M["SpeedMax"] = (d["self_speedup8_max"], "max self-speedup @8 among accepted")
-    M["SpeedMedian"] = (d["self_speedup8_median"], "median")
-    M["BelowSerialRate"] = (d["below_serial_pct"], "% accepted with S8<1 (slower than serial)")
-    M["BelowTwoXRate"] = (d["below_2x_pct"], "% accepted with S8<2")
-    M["ContamRate"] = (d["efficiency_below_0.25_pct"], "% accepted with capped efficiency <0.25")
-    ws = d["widest_within_task_spread"]
-    M["WorstTaskRange"] = ("%.2f--%.2f" % (ws["min"], ws["max"]), "widest within-task spread (%s)" % ws["task"])
+    # Correctness-only selection is indifferent among accepted candidates, so use
+    # the mean self-speedup in each task pool as the expected random tie-break.
+    corr_selected = st.mean(
+        st.mean(float(p["self_speedup8"]) for p in group)
+        for group in by_task.values() if group
+    )
 
-    # ---- E7 correctness saturation (the premise) ----
-    k = sum(robust(r) for r in ss)
-    M["PassRate"] = (round(100 * k / len(ss), 1), "single-shot robust-correct pass rate")
-    bytask = defaultdict(list)
-    for r in ss:
-        bytask[r["task"]].append(robust(r))
-    p_t = {t: (sum(v) / len(v)) for t, v in bytask.items() if v}
-    sat = sum(1 for t, v in p_t.items() if v == 1.0)
-    M["SatTaskFrac"] = (round(100 * sat / len(p_t), 0), "% tasks with single-shot pass rate == 1")
+    # Performance-aware selection uses the trusted-reference reward.
+    perf_selected_values = []
+    self_selected_values = []
+    for group in by_task.values():
+        valid = [p for p in group if p.get("vs_serial8") is not None]
+        if valid:
+            chosen = max(valid, key=lambda p: min(float(p["vs_serial8"]) / NMAX, 1.0))
+            perf_selected_values.append(float(chosen["self_speedup8"]))
+        chosen_self = max(group, key=lambda p: float(p["self_speedup8"]))
+        self_selected_values.append(float(chosen_self["self_speedup8"]))
 
-    # ---- E3 signal collapse : PREDICTION from measured per-task pass rates ----
-    # For a group of k i.i.d. samples of a task with pass prob p, P(zero R_corr variance)=p^k+(1-p)^k.
-    pv = list(p_t.values())
-    for kk in (4, 8, 16):
-        dead = st.mean([p ** kk + (1 - p) ** kk for p in pv])
-        M["DeadGroupCorr%s" % {4: "Four", 8: "Eight", 16: "Sixteen"}[kk]] = (
-            round(100 * dead, 1), "PREDICTED %% zero-variance groups @k=%d under R_corr (from per-task p_t)" % kk)
-    # under R_gate = 1[c].f with f continuous, a group is dead only if ALL k are incorrect
-    # (Prop. signal-collapse): probability at most E_t[(1-p_t)^k].
-    for kk in (4, 8, 16):
-        dead_g = st.mean([(1 - p) ** kk for p in pv])
-        M["DeadGroupGate%s" % {4: "Four", 8: "Eight", 16: "Sixteen"}[kk]] = (
-            round(100 * dead_g, 1), "PREDICTED %% zero-variance groups @k=%d under R_gate (all-incorrect only)" % kk)
+    perf_selected = st.mean(perf_selected_values) if perf_selected_values else None
+    self_selected = st.mean(self_selected_values) if self_selected_values else None
 
-    # ---- E4 best-of-N bake-off (selection component only; labelled a proxy in-text) ----
-    # group timed programs by task; correctness-only selection is indifferent among the correct
-    # (expected = mean speedup); the gate selects max capped-efficiency (= max speedup at fixed n).
-    tg = defaultdict(list)
-    for p in progs:
-        if p["self_speedup8"] is not None:
-            tg[p["task"]].append(p["self_speedup8"])
-    corr_sel = st.mean([st.mean(v) for v in tg.values()])          # expected pick under R_corr
-    gate_sel = st.mean([max(v) for v in tg.values()])              # pick under R_gate == oracle here
-    M["BoNCorr"] = (round(corr_sel, 2), "realized mean S8, correctness-only selection (proxy)")
-    M["BoNGate"] = (round(gate_sel, 2), "realized mean S8, efficiency-gated selection (proxy)")
-    M["BoNOracle"] = (round(gate_sel, 2), "oracle-best S8 per task")
-    M["BoNGain"] = (round(100 * (gate_sel - corr_sel) / corr_sel, 0),
-                    "% more speedup the gate recovers from the same samples")
-    M["PoolsDiffering"] = (sum(1 for v in tg.values() if len(v) >= 2 and max(v) != st.mean(v)),
-                           "tasks (>=2 candidates) where the two rewards pick differently")
+    projections = [p.get("serial_projection") for p in programs if p.get("serial_projection")]
+    static_preserved = sum(1 for p in projections if p.get("predicted_still_correct"))
 
-    # ---- report ----
-    print("=" * 78)
-    print("DERIVED PAPER NUMBERS  (frozen data: %d programs, %d runs, %d models, %d tasks)"
-          % (n, len(runs), len(models), len(tasks)))
-    print("=" * 78)
-    for name, (val, prov) in M.items():
-        print("  \\%-22s = %-14s  %% %s" % (name, val, prov))
-    print("-" * 78)
-    print("NEEDS AN EXPERIMENT WE DID NOT RUN (leave for the reader / drop from claims):")
-    for name, why in [
-        ("NHacks/HackCorrPassRate/HackGatePassRate/HackGateSurvivors",
-         "the ParallelGate adversarial suite -- author + score separately (E5)"),
-        ("CVMedian/NoiseFloor/RewardResolution",
-         "per-rep timings not logged (scaling stored min-over-reps only)"),
-        ("RankInstability/NArch/ArchA/ArchB/CompilerList",
-         "single verification backend -- no cross-architecture run (E6)"),
-        ("Regret*/Rho*", "optional selection-quality stats; derivable but omitted unless needed"),
-    ]:
-        print("  - %-58s %s" % (name, why))
-    print("=" * 78)
+    single_shot = [r for r in runs if r.get("condition") == "single_shot"]
+    single_shot_robust = sum(_robust(r) for r in single_shot)
 
+    return {
+        "n_tasks": len(tasks),
+        "n_models": len(models),
+        "models": models,
+        "n_logged_runs": len(runs),
+        "n_accepted_timed": len(programs),
+        "max_threads": NMAX,
+        "self_speedup_8": {
+            "min": min(speeds),
+            "max": max(speeds),
+            "median": st.median(speeds),
+            "below_1x_count": sum(v < 1.0 for v in speeds),
+            "below_2x_count": sum(v < 2.0 for v in speeds),
+            "widest_within_task": widest,
+        },
+        "selection_proxy": {
+            "correctness_only_mean_self_speedup": corr_selected,
+            "performance_aware_mean_self_speedup": perf_selected,
+            "self_speedup_ablation_mean_self_speedup": self_selected,
+            "performance_aware_gain_pct": (
+                100.0 * (perf_selected - corr_selected) / corr_selected
+                if perf_selected is not None and corr_selected else None
+            ),
+        },
+        "serial_projection_static_check": {
+            "n_with_source": len(projections),
+            "predicted_correct_after_directive_removal": static_preserved,
+            "note": "Static source-transform check in agent.diag_core; not a replacement for live re-execution.",
+        },
+        "single_shot_correctness": {
+            "accepted": single_shot_robust,
+            "total": len(single_shot),
+            "rate": single_shot_robust / len(single_shot) if single_shot else None,
+        },
+    }
+
+
+def print_summary(summary: dict) -> None:
+    s = summary["self_speedup_8"]
+    sel = summary["selection_proxy"]
+    print("Frozen artifact summary")
+    print("=" * 72)
+    print(f"accepted + timed programs : {summary['n_accepted_timed']}")
+    print(f"tasks / models             : {summary['n_tasks']} / {summary['n_models']}")
+    print(f"8-thread self-speedup      : {s['min']:.2f}x -- {s['max']:.2f}x (median {s['median']:.2f}x)")
+    print(f"below 2x / below 1x        : {s['below_2x_count']} / {s['below_1x_count']}")
+    if s["widest_within_task"]:
+        w = s["widest_within_task"]
+        print(f"widest within-task range   : {w['min']:.2f}x -- {w['max']:.2f}x ({w['task']})")
+    print(f"correctness-only selection : {sel['correctness_only_mean_self_speedup']:.2f}x")
+    if sel["performance_aware_mean_self_speedup"] is not None:
+        print(f"performance-aware selection: {sel['performance_aware_mean_self_speedup']:.2f}x")
+        print(f"selection gain             : {sel['performance_aware_gain_pct']:.1f}%")
+    if sel["self_speedup_ablation_mean_self_speedup"] is not None:
+        print(f"self-speedup ablation      : {sel['self_speedup_ablation_mean_self_speedup']:.2f}x")
+    p = summary["serial_projection_static_check"]
+    print(f"static serial projection   : {p['predicted_correct_after_directive_removal']}/{p['n_with_source']} predicted value-preserving")
+
+
+def main(write: bool = False) -> None:
+    summary = compute()
+    print_summary(summary)
     if write:
-        out = os.path.join(R, "paper_agentic")
-        os.makedirs(out, exist_ok=True)
-        fp = os.path.join(out, "numbers_filled.tex")
-        with open(fp, "w", encoding="utf-8") as fh:
-            fh.write("%% Auto-derived from the frozen run pool by agent/compute_numbers.py.\n")
-            fh.write("%% Every value below is a real measurement or a clearly-labelled prediction.\n\n")
-            # The prose appends \% itself (e.g. \PassRate\%), so every macro is a BARE value.
-            for name, (val, prov) in M.items():
-                fh.write("\\newcommand{\\%s}{%s}%% %s\n" % (name, val, prov))
-        print("wrote", fp)
+        out = ROOT / "results" / "derived"
+        out.mkdir(parents=True, exist_ok=True)
+        path = out / "summary.json"
+        path.write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
+        print("wrote", path.relative_to(ROOT))
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--write", action="store_true")
-    a = ap.parse_args()
-    main(write=a.write)
+    parser = argparse.ArgumentParser(description="Compute frozen artifact summary statistics")
+    parser.add_argument("--write", action="store_true", help="write results/derived/summary.json")
+    args = parser.parse_args()
+    main(write=args.write)
