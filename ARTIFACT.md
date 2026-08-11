@@ -1,14 +1,10 @@
 # Artifact Description and Reproduction Guide
 
-This document describes the reproducibility artifact accompanying the SC26 AgenticAI4HPC submission **Correct but Not Parallel: Performance-Aware Verifiable Rewards for AI-Generated HPC Code**.
-
 ## 1. Scope
 
-The artifact supports reproduction of the paper's core analyses from frozen experimental data and, when the required external services are available, regeneration of the underlying model outputs and execution measurements.
+This repository is a standalone reproducibility artifact for experiments on correctness and parallel performance in LLM-generated OpenMP code. It contains frozen model generations, execution measurements, verification outputs, reward analyses, and ParallelRewardBench (PRB).
 
-The paper studies LLM-generated OpenMP programs after functional correctness has been established. It evaluates whether correctness alone captures parallel behavior, measures scaling among accepted programs, compares reward formulations, and evaluates them with **ParallelRewardBench (PRB)**.
-
-The current PRB release contains the adversarial cases used in the paper. PRB is designed as an extensible benchmark; additional candidates and attack classes may be added in later releases as new reward formulations and failure modes are identified.
+The artifact is designed so that the main analyses can be rerun from released data without requiring model access. Full regeneration is also supported when the required external services and execution environment are available.
 
 ## 2. Artifact contents
 
@@ -19,28 +15,26 @@ The current PRB release contains the adversarial cases used in the paper. PRB is
 - `harness/analyze_scaling.py` — derives scaling statistics from frozen timing data.
 - `harness/sanitizer_arm.py` — Archer/ThreadSanitizer cross-check.
 - `agent/diag_core.py` — offline loader for the frozen accepted-program pool.
-- `agent/compute_numbers.py` — derives paper statistics from the frozen data.
-- `agent/parallel_reward_bench.py` — public entry point for **ParallelRewardBench (PRB)**.
-- `agent/make_paper_figs.py` — publication figure generation from frozen measurements.
-
-The historical PRB implementation remains in `agent/parallel_gate.py` so previously generated artifact outputs remain reproducible; new users should invoke `agent.parallel_reward_bench`.
+- `agent/compute_numbers.py` — derives summary statistics from the frozen data.
+- `agent/parallel_reward_bench.py` — public entry point for ParallelRewardBench (PRB).
 
 ### Frozen data and provenance
 
-- `results/pareval_runs.jsonl` — verification results.
+- `results/pareval_runs.jsonl` — correctness and verification results.
 - `results/scaling.jsonl` — per-thread timing and scaling measurements.
 - `results/sanitizer.jsonl` — race-detection results.
 - `results/oversync.jsonl` — synchronization-pattern analysis.
 - `logs/pareval/generations/` — model prompts, responses, and extracted generated source.
-- `logs/pareval/verify/` and `logs/pareval/transcripts/` — verification output and generation/repair trajectories when present.
+- `logs/pareval/verify/` — raw verification output when present.
+- `logs/pareval/transcripts/` — generation/repair trajectories when present.
 
-These files allow the main analyses to be inspected without contacting the original model services.
+These files are the provenance record for the released artifact.
 
 ## 3. Reproducibility tracks
 
 ### Track A: frozen-data analysis
 
-This is the recommended path for artifact evaluation because it avoids external model APIs and reproduces the analysis from the released measurements.
+This is the recommended path because it requires no model API and uses the released measurements directly.
 
 Requirements:
 
@@ -54,14 +48,9 @@ python -m pip install -r requirements.txt
 python -m harness.analyze_scaling
 python -m agent.compute_numbers
 python -m agent.parallel_reward_bench
-python -m agent.make_paper_figs
 ```
 
-Expected outputs include scaling summaries, reward-comparison output, and regenerated figures. Scripts that support `--write` can also emit derived LaTeX macros or benchmark tables.
-
 ### Track B: correctness and sanitizer inspection
-
-This track inspects the frozen correctness and race-detection results and can rerun analysis scripts without model generation.
 
 ```bash
 python -m harness.analyze_pareval
@@ -91,7 +80,7 @@ python -m harness.analyze_scaling
 python -m harness.sanitizer_arm --robust-only
 ```
 
-The artifact does not include credentials. Full regeneration may also differ slightly from the frozen data because hosted model versions and shared-system performance can change over time.
+The artifact does not include credentials. Hosted-model outputs and absolute performance measurements may differ when regenerated later or on different hardware.
 
 ## 4. Core measurements
 
@@ -100,17 +89,15 @@ For a generated candidate `p` evaluated at `n` threads:
 - `c(p)` is the binary correctness indicator.
 - `S_p(n) = T_ref / T_p(n)` is speedup relative to the trusted sequential reference.
 - `Sigma_p(n) = T_p(1) / T_p(n)` is candidate self-speedup.
-- the performance-aware reward studied in the paper is
+- `R_perf(p) = c(p) * min(S_p(n)/n, 1)` is the performance-aware reward used by the artifact analysis.
 
-  `R_perf(p) = c(p) * min(S_p(n)/n, 1)`.
+The current artifact uses runtime speedup as the performance signal.
 
-The artifact focuses on runtime speedup because the current experiments target OpenMP thread scaling. The reward function can be extended to incorporate additional measurable objectives, but those extensions are outside the current experimental scope.
+## 5. Serial projection
 
-## 5. Serial-projection analysis
+The serial projection mechanically removes OpenMP directives from a generated candidate while leaving the remaining computation unchanged. It is used to examine whether correctness changes when explicit parallelization is removed and how the corresponding performance signal changes.
 
-The serial projection mechanically removes OpenMP directives from a generated candidate while leaving the remaining computation unchanged. It is used to test whether the correctness signal changes when explicit parallelization is removed.
-
-The paper reports both the correctness behavior of the projected programs and the corresponding change in performance-aware reward. This transformation is an analysis step applied to generated code; the model is not asked to generate a separate serial implementation.
+The transform is applied to generated code; the model is not asked to generate a separate serial implementation.
 
 ## 6. ParallelRewardBench (PRB)
 
@@ -127,30 +114,24 @@ PRB currently evaluates eight classes of functionally correct adversarial behavi
 | H7 | cross-run caching/reuse | repeated timing |
 | H8 | correct but heavily synchronized | weak parallel performance |
 
-PRB is not tied to the proposed reward. Its purpose is to provide a common adversarial evaluation for multiple parallel-code reward formulations. The current release should be treated as the benchmark version evaluated by the paper, not as a closed or final taxonomy.
+PRB is not tied to one reward formulation. It provides a common adversarial evaluation for parallel-code rewards. The benchmark is designed to be extended with additional candidates and attack classes as new failure modes are identified.
 
-## 7. Expected reproducibility boundaries
+## 7. Reproducibility boundaries
 
-The artifact distinguishes three kinds of reproducibility:
+The artifact distinguishes three levels:
 
-1. **Deterministic analysis reproduction:** recomputing statistics and tables from released JSON/JSONL files.
-2. **Measurement reproduction:** rerunning compiled programs on a compatible OpenMP system. Absolute runtimes may vary by machine, but the protocol is fixed.
-3. **Generation reproduction:** rerunning hosted models. Exact text may vary because hosted model implementations and service versions can change.
+1. **Analysis reproduction:** recompute statistics from released JSON/JSONL files.
+2. **Measurement reproduction:** rerun generated programs on a compatible OpenMP system; absolute runtimes can change across machines.
+3. **Generation reproduction:** rerun hosted models; exact generated source can change as services evolve.
 
-For this reason, the released generation logs and frozen timing data are the provenance record for the paper's reported results.
+The frozen generation logs and timing data therefore serve as the stable record for this artifact release.
 
 ## 8. Credentials and sensitive data
 
 No credentials are committed. `.secrets/`, private-key extensions, API-key-like names, and common authentication files are excluded by `.gitignore`.
 
-The artifact uses benchmark-generated code and experiment metadata; it contains no personal participant data.
+The artifact contains benchmark-generated code and experiment metadata only; it contains no personal participant data.
 
 ## 9. Third-party software
 
-The study builds on the ParEval benchmark. The repository may include a vendored checkout for self-contained reproduction; otherwise obtain ParEval from its upstream repository. Third-party code remains subject to its original license.
-
-## 10. Paper build
-
-The current manuscript sources are under `paper_agentic/`. Once the final terminology and figures are frozen, build using the IEEEtran/BibTeX sequence documented in the paper directory or the root README.
-
-The artifact should be cited using the repository URL given in the paper's Artifact Availability appendix.
+The experiments build on the ParEval benchmark. The repository may include a vendored checkout for self-contained reproduction; otherwise obtain ParEval from its upstream repository. Third-party code remains subject to its original license.
