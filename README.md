@@ -13,8 +13,6 @@ This repository contains:
 - ParallelRewardBench (PRB), an extensible adversarial benchmark for parallel-code reward functions;
 - scripts for reproducing the released analyses from frozen data.
 
-The artifact is intentionally independent of any manuscript source. It contains the executable study, frozen evidence, and reproduction instructions only.
-
 ## Repository layout
 
 ```text
